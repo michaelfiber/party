@@ -124,51 +124,10 @@ func createFolder(acc Account, parent, name string) (Folder, error) {
 	}
 }
 
-func uploadDebugShot(p *Party, s *Shot, jpeg []byte) error {
-	if p == nil || p.Account == nil {
-		return nil
-	}
-	if err := ensureDebugFolder(p); err != nil {
-		return err
-	}
-	cp := *p
-	cp.FolderID = p.DebugFolderID
-	cp.FolderPath = p.DebugFolderPath
-	if cp.FolderName == "" {
-		cp.FolderName = "debug"
-	}
-	return uploadShotToCloud(&cp, s, jpeg)
-}
-
-func ensureDebugFolder(p *Party) error {
-	if p == nil || p.Account == nil {
-		return nil
-	}
-	if p.DebugFolderID != "" || p.DebugFolderPath != "" {
-		return nil
-	}
-	acc := maybeRefresh(p)
-	if acc == nil {
-		return fmt.Errorf("no cloud connected")
-	}
-	parent := p.FolderID
-	if acc.Source == sourceDropbox {
-		parent = p.FolderPath
-	}
-	folder, err := createFolder(*acc, parent, "debug")
-	if err != nil {
-		return err
-	}
-	p.DebugFolderID = folder.ID
-	p.DebugFolderPath = folder.Path
-	if p.DebugFolderPath == "" && p.FolderPath != "" {
-		p.DebugFolderPath = strings.TrimRight(p.FolderPath, "/") + "/debug"
-	}
-	putParty(p)
-	return nil
-}
-
 func uploadShotToCloud(p *Party, s *Shot, jpeg []byte) error {
+	if s != nil && s.Debug {
+		return fmt.Errorf("debug shots stay on this machine")
+	}
 	if p == nil || p.Account == nil {
 		return fmt.Errorf("no cloud connected")
 	}

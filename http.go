@@ -244,14 +244,7 @@ func handleShot(w http.ResponseWriter, r *http.Request) {
 		Path:    path,
 		Created: time.Now().UTC(),
 	}
-	if debugShot {
-		if err := uploadDebugShot(p, s, raw); err != nil {
-			s.CloudErr = err.Error()
-			logf("debug upload %s: %v", p.Code, err)
-		} else if p.Account != nil {
-			s.CloudOK = true
-		}
-	} else if cloudReady(p) {
+	if !debugShot && cloudReady(p) {
 		if err := uploadShotToCloud(p, s, raw); err != nil {
 			s.CloudErr = err.Error()
 			logf("cloud upload %s: %v", p.Code, err)

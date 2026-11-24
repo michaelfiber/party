@@ -344,6 +344,37 @@ func TestDebugShotSavesToDebugFolder(t *testing.T) {
 		t.Fatalf("debug folder: %v %#v", err, entries)
 	}
 
+	storeMu.Lock()
+	p := parties[status.Party.ID]
+	if p == nil {
+		storeMu.Unlock()
+		t.Fatal("missing party")
+	}
+	acc := Account{Source: sourceDropbox, AccessToken: "tok", UserID: "dbid"}
+	p.Account = &acc
+	p.FolderID = "album"
+	p.FolderPath = "/Reception"
+	p.DebugFolderID = ""
+	p.DebugFolderPath = ""
+	storeMu.Unlock()
+	putParty(p)
+
+	clouded := postTestShot(t, h, status.Party.Code, map[string]string{"debug": "1"})
+	if clouded.Code != http.StatusOK {
+		t.Fatalf("debug shot with cloud: %d %s", clouded.Code, clouded.Body.String())
+	}
+	if strings.Contains(clouded.Body.String(), `"cloud":true`) {
+		t.Fatalf("debug shot must not upload to cloud: %s", clouded.Body.String())
+	}
+	again := getParty(status.Party.ID)
+	if again == nil || again.DebugFolderID != "" || again.DebugFolderPath != "" {
+		t.Fatalf("must not create a cloud debug folder, party %#v", again)
+	}
+
+	if err := uploadShotToCloud(again, &Shot{Name: "debug-still.jpg", Debug: true}, jpegBytes(t)); err == nil {
+		t.Fatal("uploadShotToCloud must refuse debug shots")
+	}
+
 	t.Setenv("PARTY_ENV", "production")
 	denied := postTestShot(t, h, status.Party.Code, map[string]string{"debug": "1"})
 	if denied.Code != http.StatusForbidden {
