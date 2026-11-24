@@ -42,6 +42,11 @@ func appHandler() http.Handler {
 	inner.Handle("/", noCacheStatic(http.FileServer(http.Dir(staticDir))))
 	inner.HandleFunc("GET /p/{code}", handleCameraPage)
 	inner.HandleFunc("GET /api/status", handleStatus)
+	inner.HandleFunc("POST /api/phone/send", handlePhoneSend)
+	inner.HandleFunc("POST /api/phone/verify", handlePhoneVerify)
+	inner.HandleFunc("POST /api/phone/logout", handlePhoneLogout)
+	inner.HandleFunc("GET /api/parties", handleListParties)
+	inner.HandleFunc("POST /api/parties/open", handleOpenParty)
 	inner.HandleFunc("POST /api/party", handleCreateParty)
 	inner.HandleFunc("GET /api/oauth/{source}/start", handleOAuthStart)
 	inner.HandleFunc("GET /api/oauth/{source}/callback", handleOAuthCallback)
@@ -87,20 +92,17 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func handleStatus(w http.ResponseWriter, r *http.Request) {
-	if readCookie(r, hostCookieName) == "" && readCookie(r, secretCookieName) == "" {
+	phone := recoverPhone(r)
+	if phone == "" {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"ok":         true,
-			"needsParty": true,
+			"needsLogin": true,
 			"sources":    configuredSources(),
 			"debug":      debugMode(),
 		})
 		return
 	}
-	p := hostParty(w, r)
-	if p == nil {
-		return
-	}
-	writeJSON(w, http.StatusOK, hostStatus(r, p))
+	writeJSON(w, http.StatusOK, loginStatus(r, phone, existingHost(r)))
 }
 
 func hostStatus(r *http.Request, p *Party) map[string]any {
@@ -135,18 +137,18 @@ func hostStatus(r *http.Request, p *Party) map[string]any {
 }
 
 func handleCreateParty(w http.ResponseWriter, r *http.Request) {
-	if p := existingHost(r); p != nil {
-		setHostCookies(w, p.ID, p.Secret)
-		writeJSON(w, http.StatusOK, hostStatus(r, p))
+	phone := recoverPhone(r)
+	if phone == "" {
+		http.Error(w, "verify your phone number first", http.StatusUnauthorized)
 		return
 	}
 	var body struct {
 		Name string `json:"name"`
 	}
 	_ = json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body)
-	p := mintParty(w, body.Name)
+	p := mintParty(w, body.Name, phone)
 	notifyDebugNewParty(r, p)
-	writeJSON(w, http.StatusOK, hostStatus(r, p))
+	writeJSON(w, http.StatusOK, loginStatus(r, phone, p))
 }
 
 func handleCameraPage(w http.ResponseWriter, r *http.Request) {

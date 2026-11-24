@@ -8,24 +8,47 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
+  <button id="phone-logout" type="button" hidden>Log out</button>
   <div id="app">
     <header id="mast">
       <p class="eyebrow">Disposable cameras, without the plastic</p>
       <h1>Party Cam</h1>
-      <p class="lede">Put a camera on every table. Guests scan a QR code, snap photos or selfies from their phone, and every shot lands in one shared album — Google Drive, Dropbox, or OneDrive.</p>
+      <p class="lede">Put a camera on every table. Guests scan a QR code, snap photos or selfies from their phone, and every shot lands in one shared album — Google Drive, Dropbox, or OneDrive. Log in with your phone to start a party or open one you already ran.</p>
     </header>
 
     <p id="oauth-error" class="banner-error" hidden></p>
     <p id="toast" hidden></p>
 
-    <div id="welcome" hidden>
-      <p>Start a party to get a QR code. Guests use their phones as cameras. You collect the album at the end.</p>
+    <div id="login" hidden>
+      <h2>Log in with your phone</h2>
+      <p>We’ll text a 6-digit code to that number. After you enter it, you can start a party or open any party saved on this phone.</p>
+      <form id="login-phone-form">
+        <label>
+          Phone number
+          <input id="login-phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-0100" required />
+        </label>
+        <button type="submit" id="login-send">Text me a code</button>
+      </form>
+      <form id="login-code-form" hidden>
+        <label>
+          Code
+          <input id="login-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" placeholder="000000" required />
+        </label>
+        <button type="submit" id="login-verify">Verify</button>
+      </form>
+    </div>
+
+    <div id="home" hidden>
+      <h2>Your parties</h2>
+      <p id="home-phone"></p>
+      <ul id="party-list"></ul>
+      <p id="party-empty" hidden>No parties on this number yet. Start one to get a QR code.</p>
       <form id="start-form">
         <label>
-          Party name
+          New party name
           <input id="party-name" type="text" maxlength="80" placeholder="Sam &amp; Alex, June 12" autocomplete="off" />
         </label>
         <button id="start-btn" type="submit">Start a party</button>
@@ -33,6 +56,7 @@
     </div>
 
     <div id="host" hidden>
+      <button id="back-parties" type="button">My parties</button>
       <p id="party-title"></p>
       <p id="cloud-note"></p>
 
@@ -85,6 +109,6 @@
       </section>
     </div>
   </div>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

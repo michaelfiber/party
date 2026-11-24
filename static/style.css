@@ -18,9 +18,26 @@ html, body {
 }
 
 #app {
+  position: relative;
   max-width: 920px;
   margin: 0 auto;
   padding: 1.5rem 1.2rem 3rem;
+}
+
+#phone-logout {
+  position: fixed;
+  top: max(0.7rem, env(safe-area-inset-top));
+  right: max(0.7rem, env(safe-area-inset-right));
+  z-index: 35;
+  background: transparent;
+  color: #e8dcc8;
+  border: 2px solid rgba(232, 220, 200, 0.45);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+body.phone-in #app {
+  padding-top: 3.4rem;
 }
 
 .eyebrow {
@@ -40,7 +57,7 @@ h1, h2 {
 h1 { font-size: clamp(2.1rem, 6vw, 3.4rem); letter-spacing: -0.03em; }
 h2 { font-size: 1.25rem; margin-bottom: 0.4rem; }
 
-.lede, .hint, #welcome p, #cloud-note, #party-title {
+.lede, .hint, #login p, #home p, #cloud-note, #party-title {
   line-height: 1.45;
   color: var(--muted);
 }
@@ -97,13 +114,49 @@ button.ghost, #disconnect-btn, #source-buttons button {
 
 button:disabled { opacity: 0.5; cursor: default; }
 
-#welcome {
+#login, #home {
   background: var(--panel);
   border-radius: 1.1rem;
   padding: 1.2rem;
 }
 
-#start-form, #new-folder-form, #text-form { margin-top: 0.8rem; }
+#login h2, #home h2 { margin-bottom: 0.35rem; }
+#home-phone { margin: 0 0 0.2rem; }
+
+#login-phone-form, #login-code-form, #start-form, #new-folder-form, #text-form { margin-top: 0.8rem; }
+
+#party-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.8rem 0 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+#party-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: center;
+  background: #140e0a;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.8rem;
+}
+
+#party-list .meta {
+  display: grid;
+  gap: 0.15rem;
+}
+
+#party-list .meta strong { font-size: 1.05rem; }
+#party-list .meta span { color: var(--muted); font-size: 0.88rem; }
+
+#back-parties {
+  background: transparent;
+  color: var(--paper);
+  border: 2px solid rgba(232, 220, 200, 0.45);
+  margin-bottom: 0.7rem;
+}
 
 #party-title {
   font-family: "Fraunces", Georgia, serif;
@@ -188,10 +241,11 @@ button:disabled { opacity: 0.5; cursor: default; }
   z-index: 20;
 }
 
-#welcome[hidden], #host[hidden], .panel[hidden], #oauth-error[hidden],
+#login[hidden], #home[hidden], #host[hidden], .panel[hidden], #oauth-error[hidden],
 #toast[hidden], #cam-error[hidden], #cam-toast[hidden], #qr[hidden],
 #no-sources[hidden], #folders[hidden], #disconnect-btn[hidden],
-#folder-empty[hidden], #wall-empty[hidden] {
+#folder-empty[hidden], #wall-empty[hidden], #login-code-form[hidden],
+#party-empty[hidden], #phone-logout[hidden] {
   display: none !important;
 }
 
@@ -312,6 +366,6 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (max-width: 720px) {
   #share-card { grid-template-columns: 1fr; }
   #qr { width: 13rem; height: 13rem; }
-  input, .panel button, #start-btn, #welcome button { width: 100%; }
+  input, .panel button, #start-btn, #login button { width: 100%; }
   .row { align-items: stretch; }
 }

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -68,23 +69,99 @@ func requestWithCookies(method, target string, body []byte, cookies ...*http.Coo
 	return r
 }
 
-func startTestParty(t *testing.T, name string) *httptest.ResponseRecorder {
+func allowPhoneSend(phone string) {
+	n, err := normalizePhone(phone)
+	if err != nil {
+		n = phone
+	}
+	phoneMu.Lock()
+	delete(lastSend, n)
+	phoneMu.Unlock()
+}
+
+func extractSMSCode(t *testing.T, body string) string {
 	t.Helper()
+	m := regexp.MustCompile(`\b(\d{6})\b`).FindStringSubmatch(body)
+	if len(m) < 2 {
+		t.Fatalf("no code in %q", body)
+	}
+	return m[1]
+}
+
+func loginTestPhone(t *testing.T, phone string) (token string, auth *http.Cookie) {
+	t.Helper()
+	allowPhoneSend(phone)
+	orig := sendSMSFn
+	var smsBody string
+	sendSMSFn = func(to, body string) error {
+		smsBody = body
+		if orig != nil {
+			return orig(to, body)
+		}
+		return nil
+	}
+	sendRec := httptest.NewRecorder()
+	sendBody, _ := json.Marshal(map[string]string{"phone": phone})
+	handlePhoneSend(sendRec, httptest.NewRequest(http.MethodPost, "/api/phone/send", bytes.NewReader(sendBody)))
+	sendSMSFn = orig
+	if sendRec.Code != http.StatusOK {
+		t.Fatalf("send code: %d %s", sendRec.Code, sendRec.Body.String())
+	}
+	code := extractSMSCode(t, smsBody)
+
+	verifyRec := httptest.NewRecorder()
+	verifyBody, _ := json.Marshal(map[string]string{"phone": phone, "code": code})
+	handlePhoneVerify(verifyRec, httptest.NewRequest(http.MethodPost, "/api/phone/verify", bytes.NewReader(verifyBody)))
+	if verifyRec.Code != http.StatusOK {
+		t.Fatalf("verify code: %d %s", verifyRec.Code, verifyRec.Body.String())
+	}
+	var out struct {
+		Token string `json:"token"`
+	}
+	if err := json.NewDecoder(verifyRec.Body).Decode(&out); err != nil {
+		t.Fatal(err)
+	}
+	if out.Token == "" {
+		t.Fatal("verify should return a token")
+	}
+	return out.Token, cookieByName(verifyRec, authCookieName)
+}
+
+func ownerCookies(rec *httptest.ResponseRecorder, auth *http.Cookie) []*http.Cookie {
+	return []*http.Cookie{
+		cookieByName(rec, hostCookieName),
+		cookieByName(rec, secretCookieName),
+		auth,
+	}
+}
+
+func startTestParty(t *testing.T, name string) (*httptest.ResponseRecorder, *http.Cookie) {
+	t.Helper()
+	token, auth := loginTestPhone(t, "5555550100")
 	rec := httptest.NewRecorder()
 	body, _ := json.Marshal(map[string]string{"name": name})
-	handleCreateParty(rec, httptest.NewRequest(http.MethodPost, "/api/party", bytes.NewReader(body)))
+	req := httptest.NewRequest(http.MethodPost, "/api/party", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	if auth != nil {
+		req.AddCookie(auth)
+	}
+	handleCreateParty(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("create party: %d %s", rec.Code, rec.Body.String())
 	}
 	if cookieByName(rec, hostCookieName) == nil || cookieByName(rec, secretCookieName) == nil {
 		t.Fatal("create party missing cookies")
 	}
-	return rec
+	if auth == nil {
+		t.Fatal("login missing auth cookie")
+	}
+	return rec, auth
 }
 
 func TestStartPartyAndGuestShot(t *testing.T) {
 	chdirTemp(t)
-	created := startTestParty(t, "Sam & Alex")
+	created, auth := startTestParty(t, "Sam & Alex")
 	var status struct {
 		Party struct {
 			Code       string `json:"code"`
@@ -102,18 +179,18 @@ func TestStartPartyAndGuestShot(t *testing.T) {
 
 	idle := httptest.NewRecorder()
 	handleStatus(idle, httptest.NewRequest(http.MethodGet, "/api/status", nil))
-	if idle.Code != http.StatusOK || !strings.Contains(idle.Body.String(), `"needsParty":true`) {
+	if idle.Code != http.StatusOK || !strings.Contains(idle.Body.String(), `"needsLogin":true`) {
 		t.Fatalf("anonymous status: %d %s", idle.Code, idle.Body.String())
 	}
 
 	host := httptest.NewRecorder()
-	handleStatus(host, requestWithCookies(http.MethodGet, "/api/status", nil, cookieByName(created, hostCookieName), cookieByName(created, secretCookieName)))
-	if host.Code != http.StatusOK || strings.Contains(host.Body.String(), `"needsParty":true`) {
+	handleStatus(host, requestWithCookies(http.MethodGet, "/api/status", nil, ownerCookies(created, auth)...))
+	if host.Code != http.StatusOK || strings.Contains(host.Body.String(), `"needsLogin":true`) {
 		t.Fatalf("host status: %d %s", host.Code, host.Body.String())
 	}
 
 	qr := httptest.NewRecorder()
-	handleShareQR(qr, requestWithCookies(http.MethodGet, "/api/qr", nil, cookieByName(created, hostCookieName), cookieByName(created, secretCookieName)))
+	handleShareQR(qr, requestWithCookies(http.MethodGet, "/api/qr", nil, ownerCookies(created, auth)...))
 	if qr.Code != http.StatusOK || !bytes.HasPrefix(qr.Body.Bytes(), []byte{0x89, 0x50, 0x4e, 0x47}) {
 		t.Fatalf("qr: %d", qr.Code)
 	}
@@ -177,8 +254,14 @@ func TestStartPartyAndGuestShot(t *testing.T) {
 		t.Fatalf("shots without host: %d", denied.Code)
 	}
 
+	hostOnly := httptest.NewRecorder()
+	handleListShots(hostOnly, requestWithCookies(http.MethodGet, "/api/shots", nil, cookieByName(created, hostCookieName), cookieByName(created, secretCookieName)))
+	if hostOnly.Code != http.StatusUnauthorized {
+		t.Fatalf("shots with host cookies but no phone: %d %s", hostOnly.Code, hostOnly.Body.String())
+	}
+
 	list := httptest.NewRecorder()
-	handleListShots(list, requestWithCookies(http.MethodGet, "/api/shots", nil, cookieByName(created, hostCookieName), cookieByName(created, secretCookieName)))
+	handleListShots(list, requestWithCookies(http.MethodGet, "/api/shots", nil, ownerCookies(created, auth)...))
 	if list.Code != http.StatusOK || !strings.Contains(list.Body.String(), `"count":1`) {
 		t.Fatalf("list shots: %d %s", list.Code, list.Body.String())
 	}
@@ -224,7 +307,7 @@ func postTestShot(t *testing.T, h http.Handler, code string, extra map[string]st
 func TestDebugShotSavesToDebugFolder(t *testing.T) {
 	chdirTemp(t)
 	t.Setenv("PARTY_ENV", "")
-	created := startTestParty(t, "Reception")
+	created, _ := startTestParty(t, "Reception")
 	var status struct {
 		Party struct {
 			Code string `json:"code"`
@@ -270,7 +353,7 @@ func TestDebugShotSavesToDebugFolder(t *testing.T) {
 
 func TestGuestCannotUseHostRoutes(t *testing.T) {
 	chdirTemp(t)
-	_ = startTestParty(t, "Kitchen")
+	_, _ = startTestParty(t, "Kitchen")
 	rec := httptest.NewRecorder()
 	handleListFolders(rec, httptest.NewRequest(http.MethodGet, "/api/folders", nil))
 	if rec.Code != http.StatusUnauthorized {
@@ -286,7 +369,7 @@ func TestIndexMentionsPartyCam(t *testing.T) {
 		t.Fatalf("index %d", rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, "Start a party") || !strings.Contains(body, "Party Cam") || !strings.Contains(body, "id=\"qr\"") {
+	if !strings.Contains(body, "Text me a code") || !strings.Contains(body, "Start a party") || !strings.Contains(body, "Party Cam") || !strings.Contains(body, "id=\"qr\"") {
 		t.Fatalf("index missing host UI: %s", body[:min(400, len(body))])
 	}
 }
@@ -299,10 +382,15 @@ func TestHostedAtCubeofbParty(t *testing.T) {
 		t.Fatalf("public path %q", publicPath())
 	}
 
+	token, auth := loginTestPhone(t, "5555550100")
 	req := httptest.NewRequest(http.MethodPost, "/api/party", strings.NewReader(`{"name":"Reception"}`))
 	req.Host = "cubeofb.org"
 	req.Header.Set("X-Forwarded-Proto", "https")
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	if auth != nil {
+		req.AddCookie(auth)
+	}
 	rec := httptest.NewRecorder()
 	handleCreateParty(rec, req)
 	if rec.Code != http.StatusOK {
@@ -332,7 +420,7 @@ func TestHostedAtCubeofbParty(t *testing.T) {
 	h := appHandler()
 	st := httptest.NewRecorder()
 	h.ServeHTTP(st, httptest.NewRequest(http.MethodGet, "/party/api/status", nil))
-	if st.Code != http.StatusOK || !strings.Contains(st.Body.String(), `"needsParty":true`) {
+	if st.Code != http.StatusOK || !strings.Contains(st.Body.String(), `"needsLogin":true`) {
 		t.Fatalf("hosted status: %d %s", st.Code, st.Body.String())
 	}
 

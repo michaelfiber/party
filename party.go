@@ -30,6 +30,7 @@ type Party struct {
 	Code            string    `json:"code"`
 	Secret          string    `json:"secret"`
 	Name            string    `json:"name"`
+	Phone           string    `json:"phone,omitempty"`
 	Created         time.Time `json:"createdAt"`
 	Account         *Account  `json:"account,omitempty"`
 	FolderID        string    `json:"folderId,omitempty"`
@@ -126,6 +127,13 @@ func hostParty(w http.ResponseWriter, r *http.Request) *Party {
 		}
 		return nil
 	}
+	phone := recoverPhone(r)
+	if p.Phone == "" || phone == "" || p.Phone != phone {
+		if w != nil {
+			http.Error(w, "verify your phone number first", http.StatusUnauthorized)
+		}
+		return nil
+	}
 	setHostCookies(w, p.ID, p.Secret)
 	return p
 }
@@ -134,13 +142,14 @@ func existingHost(r *http.Request) *Party {
 	return hostParty(nil, r)
 }
 
-func mintParty(w http.ResponseWriter, name string) *Party {
+func mintParty(w http.ResponseWriter, name, phone string) *Party {
 	now := time.Now().UTC()
 	p := &Party{
 		ID:      newID(),
 		Code:    newPartyCode(),
 		Secret:  newID(),
 		Name:    strings.TrimSpace(name),
+		Phone:   phone,
 		Created: now,
 	}
 	if p.Name == "" {

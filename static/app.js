@@ -1,5 +1,6 @@
 (() => {
-  const welcome = document.getElementById("welcome");
+  const loginEl = document.getElementById("login");
+  const homeEl = document.getElementById("home");
   const host = document.getElementById("host");
   const startForm = document.getElementById("start-form");
   const partyName = document.getElementById("party-name");
@@ -22,10 +23,22 @@
   const toastEl = document.getElementById("toast");
   const oauthError = document.getElementById("oauth-error");
   const textForm = document.getElementById("text-form");
+  const loginPhoneForm = document.getElementById("login-phone-form");
+  const loginCodeForm = document.getElementById("login-code-form");
+  const loginPhone = document.getElementById("login-phone");
+  const loginCode = document.getElementById("login-code");
+  const partyList = document.getElementById("party-list");
+  const partyEmpty = document.getElementById("party-empty");
+  const homePhone = document.getElementById("home-phone");
+  const logoutBtn = document.getElementById("phone-logout");
+  const backParties = document.getElementById("back-parties");
 
+  const tokenKey = "party-phone-token";
   let folderParent = "";
   let pollTimer = null;
   let connectedSource = "google";
+  let loginPhoneValue = "";
+  let loggedIn = false;
 
   function appBase() {
     const u = new URL(window.location.href);
@@ -44,8 +57,33 @@
     return new URL(path, appBase()).href;
   }
 
+  function phoneToken() {
+    try {
+      return localStorage.getItem(tokenKey) || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function setPhoneToken(token) {
+    try {
+      if (token) localStorage.setItem(tokenKey, token);
+      else localStorage.removeItem(tokenKey);
+    } catch (_) {}
+    syncLogout();
+  }
+
+  function syncLogout() {
+    logoutBtn.hidden = !loggedIn;
+    document.body.classList.toggle("phone-in", loggedIn);
+  }
+
   async function api(url, opts) {
     const next = Object.assign({ credentials: "same-origin" }, opts || {});
+    const headers = Object.assign({}, next.headers || {});
+    const token = phoneToken();
+    if (token) headers.Authorization = "Bearer " + token;
+    next.headers = headers;
     return fetch(appURL(url), next);
   }
 
@@ -84,13 +122,14 @@
     const msg = params.get("oauth_error");
     if (!msg) {
       oauthError.hidden = true;
-      return;
+      return false;
     }
     oauthError.hidden = false;
     oauthError.textContent = msg;
     params.delete("oauth_error");
     const next = params.toString();
     history.replaceState({}, "", window.location.pathname + (next ? "?" + next : ""));
+    return true;
   }
 
   function sourceLabel(id) {
@@ -114,6 +153,68 @@
       });
       sourceButtons.appendChild(btn);
     });
+  }
+
+  function stopPoll() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  function showLogin() {
+    stopPoll();
+    loggedIn = false;
+    loginEl.hidden = false;
+    homeEl.hidden = true;
+    host.hidden = true;
+    loginPhoneForm.hidden = false;
+    loginCodeForm.hidden = true;
+    loginCode.value = "";
+    syncLogout();
+  }
+
+  function renderPartyList(parties) {
+    const list = parties || [];
+    partyList.innerHTML = "";
+    partyEmpty.hidden = list.length > 0;
+    list.forEach((item) => {
+      const li = document.createElement("li");
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const title = document.createElement("strong");
+      title.textContent = item.name || "Party";
+      const detail = document.createElement("span");
+      const n = item.photos || 0;
+      const when = item.createdAt ? new Date(item.createdAt).toLocaleString() : "";
+      detail.textContent = (n === 1 ? "1 photo" : n + " photos") + (when ? " · " + when : "");
+      meta.appendChild(title);
+      meta.appendChild(detail);
+      const open = document.createElement("button");
+      open.type = "button";
+      open.textContent = "Open";
+      open.addEventListener("click", () => {
+        postJSON("api/parties/open", { id: item.id })
+          .then(showHost)
+          .catch((err) => toast(err.message || "Could not open that party"));
+      });
+      li.appendChild(meta);
+      li.appendChild(open);
+      partyList.appendChild(li);
+    });
+  }
+
+  function showHome(data) {
+    stopPoll();
+    loggedIn = true;
+    if (data && data.token) setPhoneToken(data.token);
+    loginEl.hidden = true;
+    homeEl.hidden = false;
+    host.hidden = true;
+    homePhone.textContent = data && data.phone ? "Parties on " + data.phone : "Your parties";
+    renderPartyList(data && data.parties);
+    renderSources(data);
+    syncLogout();
   }
 
   async function loadFolders(parent) {
@@ -150,7 +251,10 @@
   }
 
   async function showHost(data) {
-    welcome.hidden = true;
+    loggedIn = true;
+    if (data && data.token) setPhoneToken(data.token);
+    loginEl.hidden = true;
+    homeEl.hidden = true;
     host.hidden = false;
     const party = data.party || {};
     const cloud = party.cloud || {};
@@ -176,6 +280,7 @@
     shotCount.textContent = n === 0 ? "No photos yet." : n === 1 ? "1 photo in the album." : n + " photos in the album.";
     await loadWall();
     if (!pollTimer) pollTimer = setInterval(() => loadWall().catch(() => {}), 4000);
+    syncLogout();
   }
 
   async function loadWall() {
@@ -195,11 +300,54 @@
     shotCount.textContent = n === 0 ? "No photos yet." : n === 1 ? "1 photo in the album." : n + " photos in the album.";
   }
 
+  loginPhoneForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    loginPhoneValue = loginPhone.value.trim();
+    postJSON("api/phone/send", { phone: loginPhoneValue })
+      .then((data) => {
+        loginCodeForm.hidden = false;
+        if (data && data.debugCode) {
+          loginCode.value = data.debugCode;
+          toast("Debug: code is " + data.debugCode);
+        } else {
+          toast("Code sent. Check your texts.");
+        }
+        loginCode.focus();
+      })
+      .catch((err) => toast(err.message || "Could not send a code"));
+  });
+
+  loginCodeForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    postJSON("api/phone/verify", { phone: loginPhoneValue, code: loginCode.value.trim() })
+      .then((data) => {
+        if (data.token) setPhoneToken(data.token);
+        showHome(data);
+      })
+      .catch((err) => toast(err.message || "Could not verify"));
+  });
+
   startForm.addEventListener("submit", (e) => {
     e.preventDefault();
     postJSON("api/party", { name: partyName.value.trim() })
       .then(showHost)
       .catch((err) => toast(err.message || "Could not start a party"));
+  });
+
+  backParties.addEventListener("click", () => {
+    getJSON("api/parties")
+      .then(showHome)
+      .catch((err) => toast(err.message || "Could not load parties"));
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    postJSON("api/phone/logout", {})
+      .catch(() => {})
+      .then(() => {
+        setPhoneToken("");
+        showLogin();
+        toast("Logged out.");
+      });
   });
 
   disconnectBtn.addEventListener("click", () => {
@@ -224,19 +372,26 @@
       .catch((err) => toast(err.message || "Could not send that text"));
   });
 
-  showOAuthError();
+  const oauthReturned = showOAuthError() || new URLSearchParams(window.location.search).has("connected");
+  if (new URLSearchParams(window.location.search).has("connected")) {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("connected");
+    const next = params.toString();
+    history.replaceState({}, "", window.location.pathname + (next ? "?" + next : ""));
+  }
+  syncLogout();
   getJSON("api/status")
     .then((data) => {
-      if (data.needsParty) {
-        welcome.hidden = false;
-        host.hidden = true;
-        renderSources(data);
+      if (data.needsLogin) {
+        setPhoneToken("");
+        showLogin();
         return;
       }
-      return showHost(data);
+      if (oauthReturned && data.party) return showHost(data);
+      showHome(data);
     })
     .catch(() => {
-      welcome.hidden = false;
-      toast("Could not load this party.");
+      showLogin();
+      toast("Could not load Party Cam.");
     });
 })();

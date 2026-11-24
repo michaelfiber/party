@@ -31,6 +31,7 @@ func loadStore() {
 	storeMu.Unlock()
 	loadParties()
 	loadShots()
+	loadPhoneTokens()
 }
 
 func loadJSON(path string, dest any) {
