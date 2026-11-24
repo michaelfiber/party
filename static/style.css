@@ -170,6 +170,14 @@ button:disabled { opacity: 0.5; cursor: default; }
   border-radius: 0.6rem;
 }
 
+.camera-page #cam-error {
+  position: fixed;
+  left: 0.8rem;
+  right: 0.8rem;
+  top: 4.2rem;
+  z-index: 12;
+}
+
 #toast, #cam-toast {
   background: #2a2410;
   color: var(--paper);
@@ -188,22 +196,32 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 .camera-page {
-  min-height: 100dvh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  position: relative;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
   background: #090705;
 }
 
-#cam-mast { padding: 0.8rem 1rem 0.4rem; }
-#cam-name { font-size: 1.4rem; }
+#cam-mast {
+  position: fixed;
+  top: max(0.55rem, env(safe-area-inset-top));
+  left: max(0.8rem, env(safe-area-inset-left));
+  right: 5.5rem;
+  z-index: 6;
+  padding: 0;
+  pointer-events: none;
+  text-shadow: 0 1px 8px #000;
+}
+#cam-name { font-size: 1.25rem; }
 
 #viewfinder {
-  position: relative;
-  margin: 0 0.7rem;
-  border-radius: 1.2rem;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  border-radius: 0;
   overflow: hidden;
   background: #000;
-  min-height: 0;
 }
 
 #preview {
@@ -229,30 +247,48 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 #cam-bar {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  position: fixed;
+  z-index: 8;
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.7rem;
-  padding: 1rem 1.1rem calc(1.1rem + env(safe-area-inset-bottom));
+  justify-content: center;
+  gap: 0.85rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  padding: 0.7rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+#cam-bar > * {
+  pointer-events: auto;
+  width: auto;
+  flex: 0 0 auto;
 }
 
 #flip-btn {
-  justify-self: start;
-  background: transparent;
+  background: rgba(20, 12, 8, 0.55);
   color: var(--paper);
-  border: 2px solid rgba(232, 220, 200, 0.4);
+  border: 2px solid rgba(232, 220, 200, 0.55);
+  min-width: 5.4rem;
 }
 
 #cam-count {
-  justify-self: end;
   margin: 0;
+  min-width: 2rem;
+  text-align: center;
   color: var(--gilt);
   font-weight: 700;
+  text-shadow: 0 1px 6px #000;
 }
 
 #shutter {
   width: 4.6rem;
   height: 4.6rem;
+  min-width: 4.6rem;
+  min-height: 4.6rem;
   border-radius: 50%;
   background: var(--red);
   border: 5px solid var(--paper);
@@ -261,9 +297,21 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 #shutter:active { transform: scale(0.94); }
 
+@media (orientation: landscape) {
+  #cam-mast { right: 6.5rem; }
+  #cam-bar {
+    left: auto;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    flex-direction: column;
+    padding: 1rem calc(0.85rem + env(safe-area-inset-right)) 1rem 0.7rem;
+  }
+}
+
 @media (max-width: 720px) {
   #share-card { grid-template-columns: 1fr; }
   #qr { width: 13rem; height: 13rem; }
-  input, button, #start-btn { width: 100%; }
+  input, .panel button, #start-btn, #welcome button { width: 100%; }
   .row { align-items: stretch; }
 }

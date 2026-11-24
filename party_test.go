@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -188,6 +189,82 @@ func TestStartPartyAndGuestShot(t *testing.T) {
 	}
 	if !strings.Contains(string(raw), `"photoCount": 1`) || !strings.Contains(string(raw), "Sam") {
 		t.Fatalf("parties.json missing party: %s", raw)
+	}
+}
+
+func postTestShot(t *testing.T, h http.Handler, code string, extra map[string]string) *httptest.ResponseRecorder {
+	t.Helper()
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	fw, err := mw.CreateFormFile("photo", "shot.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fw.Write(jpegBytes(t)); err != nil {
+		t.Fatal(err)
+	}
+	if err := mw.WriteField("facing", "user"); err != nil {
+		t.Fatal(err)
+	}
+	for k, v := range extra {
+		if err := mw.WriteField(k, v); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/join/"+code+"/shot", &body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
+}
+
+func TestDebugShotSavesToDebugFolder(t *testing.T) {
+	chdirTemp(t)
+	t.Setenv("PARTY_ENV", "")
+	created := startTestParty(t, "Reception")
+	var status struct {
+		Party struct {
+			Code string `json:"code"`
+			ID   string `json:"id"`
+		} `json:"party"`
+	}
+	if err := json.NewDecoder(created.Body).Decode(&status); err != nil {
+		t.Fatal(err)
+	}
+	h := appHandler()
+	join := httptest.NewRecorder()
+	h.ServeHTTP(join, httptest.NewRequest(http.MethodGet, "/api/join/"+status.Party.Code, nil))
+	if !strings.Contains(join.Body.String(), `"debug":true`) {
+		t.Fatalf("join should advertise debug mode: %s", join.Body.String())
+	}
+
+	shot := postTestShot(t, h, status.Party.Code, map[string]string{"debug": "1"})
+	if shot.Code != http.StatusOK {
+		t.Fatalf("debug shot: %d %s", shot.Code, shot.Body.String())
+	}
+	var body struct {
+		OK    bool `json:"ok"`
+		Count int  `json:"count"`
+		Debug bool `json:"debug"`
+	}
+	if err := json.NewDecoder(shot.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+	if !body.OK || !body.Debug || body.Count != 0 {
+		t.Fatalf("debug shot should not count, got %#v", body)
+	}
+	entries, err := os.ReadDir(filepath.Join(photosDir, status.Party.ID, "debug"))
+	if err != nil || len(entries) != 1 {
+		t.Fatalf("debug folder: %v %#v", err, entries)
+	}
+
+	t.Setenv("PARTY_ENV", "production")
+	denied := postTestShot(t, h, status.Party.Code, map[string]string{"debug": "1"})
+	if denied.Code != http.StatusForbidden {
+		t.Fatalf("production debug shot: %d %s", denied.Code, denied.Body.String())
 	}
 }
 

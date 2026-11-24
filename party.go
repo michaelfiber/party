@@ -26,16 +26,18 @@ type Account struct {
 }
 
 type Party struct {
-	ID         string    `json:"id"`
-	Code       string    `json:"code"`
-	Secret     string    `json:"secret"`
-	Name       string    `json:"name"`
-	Created    time.Time `json:"createdAt"`
-	Account    *Account  `json:"account,omitempty"`
-	FolderID   string    `json:"folderId,omitempty"`
-	FolderName string    `json:"folderName,omitempty"`
-	FolderPath string    `json:"folderPath,omitempty"`
-	PhotoCount int       `json:"photoCount"`
+	ID              string    `json:"id"`
+	Code            string    `json:"code"`
+	Secret          string    `json:"secret"`
+	Name            string    `json:"name"`
+	Created         time.Time `json:"createdAt"`
+	Account         *Account  `json:"account,omitempty"`
+	FolderID        string    `json:"folderId,omitempty"`
+	FolderName      string    `json:"folderName,omitempty"`
+	FolderPath      string    `json:"folderPath,omitempty"`
+	DebugFolderID   string    `json:"debugFolderId,omitempty"`
+	DebugFolderPath string    `json:"debugFolderPath,omitempty"`
+	PhotoCount      int       `json:"photoCount"`
 }
 
 type Shot struct {
@@ -43,6 +45,7 @@ type Shot struct {
 	PartyID  string    `json:"partyId"`
 	Name     string    `json:"name"`
 	Facing   string    `json:"facing"`
+	Debug    bool      `json:"debug,omitempty"`
 	Path     string    `json:"path"`
 	CloudOK  bool      `json:"cloudOk"`
 	CloudErr string    `json:"cloudErr,omitempty"`

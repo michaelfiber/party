@@ -163,7 +163,7 @@ func shotsForParty(partyID string) []Shot {
 	defer storeMu.Unlock()
 	out := make([]Shot, 0)
 	for _, s := range shots {
-		if s != nil && s.PartyID == partyID {
+		if s != nil && s.PartyID == partyID && !s.Debug {
 			out = append(out, *s)
 		}
 	}

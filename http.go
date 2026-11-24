@@ -171,6 +171,7 @@ func handleJoin(w http.ResponseWriter, r *http.Request) {
 		"name":  p.Name,
 		"count": p.PhotoCount,
 		"cloud": cloudReady(p),
+		"debug": debugMode(),
 	})
 }
 
@@ -210,8 +211,19 @@ func handleShot(w http.ResponseWriter, r *http.Request) {
 	if facing != "user" {
 		facing = "environment"
 	}
+	debugShot := r.FormValue("debug") == "1" || r.FormValue("debug") == "true"
+	if debugShot && !debugMode() {
+		http.Error(w, "debug shots are off", http.StatusForbidden)
+		return
+	}
 	name := shotFileName(facing)
+	if debugShot {
+		name = "debug-" + name
+	}
 	dir := filepath.Join(photosDir, p.ID)
+	if debugShot {
+		dir = filepath.Join(dir, "debug")
+	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		http.Error(w, "could not save that photo", http.StatusInternalServerError)
 		return
@@ -226,10 +238,18 @@ func handleShot(w http.ResponseWriter, r *http.Request) {
 		PartyID: p.ID,
 		Name:    name,
 		Facing:  facing,
+		Debug:   debugShot,
 		Path:    path,
 		Created: time.Now().UTC(),
 	}
-	if cloudReady(p) {
+	if debugShot {
+		if err := uploadDebugShot(p, s, raw); err != nil {
+			s.CloudErr = err.Error()
+			logf("debug upload %s: %v", p.Code, err)
+		} else if p.Account != nil {
+			s.CloudOK = true
+		}
+	} else if cloudReady(p) {
 		if err := uploadShotToCloud(p, s, raw); err != nil {
 			s.CloudErr = err.Error()
 			logf("cloud upload %s: %v", p.Code, err)
@@ -237,15 +257,18 @@ func handleShot(w http.ResponseWriter, r *http.Request) {
 			s.CloudOK = true
 		}
 	}
-	putShot(s)
-	p.PhotoCount++
-	putParty(p)
+	if !debugShot {
+		putShot(s)
+		p.PhotoCount++
+		putParty(p)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"ok":     true,
 		"id":     s.ID,
 		"cloud":  s.CloudOK,
 		"count":  p.PhotoCount,
-		"queued": !s.CloudOK && p.Account != nil,
+		"debug":  debugShot,
+		"queued": !s.CloudOK && p.Account != nil && !debugShot,
 	})
 }
 

@@ -66,7 +66,7 @@ Cloud console redirect URIs:
 1. **Start a party** and give it a name.
 2. **Connect** Google Drive, Dropbox, or OneDrive, then pick or create the folder that should collect every shot.
 3. **Put the QR out.** Guests scan it (or you text them the link) and land on a full-screen camera.
-4. They shoot the room (rear camera) or flip to a selfie. Each JPEG uploads immediately and is written into that cloud folder. A copy also stays in `data/photos/` on the Pi.
+4. They shoot the room (rear camera) or flip to a selfie. The camera opens in selfie mode; the shutter stays bottom-center in portrait and right-center in landscape. Each JPEG uploads immediately and is written into that cloud folder. A copy also stays in `data/photos/` on the Pi. In debug mode the camera also quietly uploads a still to a `debug` folder every 10 seconds when the live feed is not black.
 5. The host page shows a live wall of incoming pictures.
 
 When `PARTY_ENV` is not `production`, starting a party or connecting a cloud texts **732-670-1359**, the same debug number Photo Frame uses. Those messages start with `[party]` so they are distinct from Photo Frame. Set `PARTY_ENV=production` to turn that off. Override the destination with `PARTY_DEBUG_LOGIN_SMS` if needed.

