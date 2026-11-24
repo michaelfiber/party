@@ -214,6 +214,59 @@ func TestIndexMentionsPartyCam(t *testing.T) {
 	}
 }
 
+func TestHostedAtCubeofbParty(t *testing.T) {
+	chdirTemp(t)
+	t.Setenv("PARTY_PUBLIC_BASE_URL", "https://cubeofb.org/party")
+
+	if publicPath() != "/party" {
+		t.Fatalf("public path %q", publicPath())
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/party", strings.NewReader(`{"name":"Reception"}`))
+	req.Host = "cubeofb.org"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	handleCreateParty(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("create: %d %s", rec.Code, rec.Body.String())
+	}
+	var status struct {
+		Party struct {
+			Code    string `json:"code"`
+			JoinURL string `json:"joinUrl"`
+		} `json:"party"`
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&status); err != nil {
+		t.Fatal(err)
+	}
+	wantJoin := "https://cubeofb.org/party/p/" + status.Party.Code
+	if status.Party.JoinURL != wantJoin {
+		t.Fatalf("join url %q want %q", status.Party.JoinURL, wantJoin)
+	}
+	if oauthRedirectURL(req, "google") != "https://cubeofb.org/party/api/oauth/google/callback" {
+		t.Fatalf("oauth redirect %s", oauthRedirectURL(req, "google"))
+	}
+	idCookie := cookieByName(rec, hostCookieName)
+	if idCookie == nil || idCookie.Path != "/party" {
+		t.Fatalf("host cookie path %#v", idCookie)
+	}
+
+	h := appHandler()
+	st := httptest.NewRecorder()
+	h.ServeHTTP(st, httptest.NewRequest(http.MethodGet, "/party/api/status", nil))
+	if st.Code != http.StatusOK || !strings.Contains(st.Body.String(), `"needsParty":true`) {
+		t.Fatalf("hosted status: %d %s", st.Code, st.Body.String())
+	}
+
+	t.Setenv("PARTY_PUBLIC_BASE_URL", "")
+	cube := httptest.NewRequest(http.MethodGet, "/", nil)
+	cube.Host = "cubeofb.org"
+	if publicBaseURL(cube) != hostedBaseURL {
+		t.Fatalf("cube host should still publish under /party, got %s", publicBaseURL(cube))
+	}
+}
+
 func TestNormalizePhone(t *testing.T) {
 	got, err := normalizePhone("(555) 555-0100")
 	if err != nil || got != "+15555550100" {

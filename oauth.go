@@ -37,9 +37,14 @@ func debugMode() bool {
 	return !strings.EqualFold(env("PARTY_ENV"), "production")
 }
 
+const hostedBaseURL = "https://cubeofb.org/party"
+
 func publicBaseURL(r *http.Request) string {
 	if v := env("PARTY_PUBLIC_BASE_URL"); v != "" {
 		return strings.TrimRight(v, "/")
+	}
+	if hostedOnCube(r) {
+		return hostedBaseURL
 	}
 	scheme := "http"
 	if r != nil && r.TLS != nil {
@@ -58,12 +63,19 @@ func publicBaseURL(r *http.Request) string {
 	return "http://127.0.0.1:3066"
 }
 
-func publicPath() string {
-	v := env("PARTY_PUBLIC_BASE_URL")
-	if v == "" {
-		return ""
+func hostedOnCube(r *http.Request) bool {
+	if r == nil {
+		return false
 	}
-	u, err := url.Parse(v)
+	host := strings.ToLower(r.Host)
+	if i := strings.Index(host, ":"); i >= 0 {
+		host = host[:i]
+	}
+	return host == "cubeofb.org" || host == "www.cubeofb.org"
+}
+
+func pathFromBase(raw string) string {
+	u, err := url.Parse(raw)
 	if err != nil {
 		return ""
 	}
@@ -75,6 +87,13 @@ func publicPath() string {
 		p = "/" + p
 	}
 	return p
+}
+
+func publicPath() string {
+	if v := env("PARTY_PUBLIC_BASE_URL"); v != "" {
+		return pathFromBase(v)
+	}
+	return ""
 }
 
 func publicHome() string {

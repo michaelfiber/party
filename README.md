@@ -1,5 +1,7 @@
 # Party Cam
 
+Live at **[https://cubeofb.org/party/](https://cubeofb.org/party/)**.
+
 Go server + vanilla JS. Disposable cameras for a wedding or house party: the host starts a party, points it at a Google Drive, Dropbox, or OneDrive folder, and puts a QR code on the tables. Guests scan it, their browser becomes a camera, and every photo — of other people or a selfie — streams into that one folder.
 
 ## Run locally
@@ -44,14 +46,20 @@ sudo /home/michael/party/scripts/auto-update.sh
 
 ## Public URL (cubeofb.org)
 
-Serve the app at [https://cubeofb.org/party/](https://cubeofb.org/party/) by reverse-tunneling the Pi to the VPS, then proxying with nginx. Merge `nginx.conf` into the live site config, then:
+The app is hosted at [https://cubeofb.org/party/](https://cubeofb.org/party/). The Pi reverse-tunnels `:3066` to the VPS; nginx proxies `/party/` there. `PARTY_PUBLIC_BASE_URL` defaults to that URL so guest QR codes, cookies, and OAuth stay under `/party/`.
+
+Merge `nginx.conf` into the live cubeofb.org server block, then:
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ./scripts/tunnel.sh user@cubeofb.org
 ```
 
-Set `PARTY_PUBLIC_BASE_URL=https://cubeofb.org/party` so OAuth callbacks and the guest QR stay under `/party/`.
+Cloud console redirect URIs:
+
+- `https://cubeofb.org/party/api/oauth/google/callback`
+- `https://cubeofb.org/party/api/oauth/dropbox/callback`
+- `https://cubeofb.org/party/api/oauth/onedrive/callback`
 
 ## Flow
 
