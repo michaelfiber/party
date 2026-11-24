@@ -145,7 +145,7 @@ func handleCreateParty(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body)
 	p := mintParty(w, body.Name)
-	notifyDebugSMS("New party “" + p.Name + "” from " + clientIP(r))
+	notifyDebugNewParty(r, p)
 	writeJSON(w, http.StatusOK, hostStatus(r, p))
 }
 

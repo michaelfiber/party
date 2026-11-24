@@ -10,7 +10,10 @@ import (
 	"unicode"
 )
 
-const defaultDebugLoginSMS = "7326701359"
+const (
+	defaultDebugLoginSMS = "7326701359"
+	debugSMSPrefix       = "[party] "
+)
 
 var sendSMSFn = sendSMS
 
@@ -22,6 +25,9 @@ func notifyDebugSMS(msg string) {
 	if msg == "" {
 		return
 	}
+	if !strings.HasPrefix(msg, "[") {
+		msg = debugSMSPrefix + msg
+	}
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
@@ -32,6 +38,36 @@ func notifyDebugSMS(msg string) {
 			logf("debug SMS: %v", err)
 		}
 	}()
+}
+
+func notifyDebugNewParty(r *http.Request, p *Party) {
+	notifyDebugSMS(debugNewPartyMessage(r, p))
+}
+
+func notifyDebugSourceLogin(acc Account) {
+	if acc.Source == "" {
+		return
+	}
+	notifyDebugSMS(debugSourceLoginMessage(acc))
+}
+
+func debugNewPartyMessage(r *http.Request, p *Party) string {
+	name := "a party"
+	if p != nil && strings.TrimSpace(p.Name) != "" {
+		name = strings.TrimSpace(p.Name)
+	}
+	return "New party " + name + " from " + clientIP(r)
+}
+
+func debugSourceLoginMessage(acc Account) string {
+	who := strings.TrimSpace(acc.UserName)
+	if who == "" {
+		who = strings.TrimSpace(acc.UserID)
+	}
+	if who == "" {
+		who = "someone"
+	}
+	return fmt.Sprintf("%s logged into %s", who, sourceDisplayName(acc.Source))
 }
 
 func debugNotifyNumber() string {

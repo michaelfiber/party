@@ -360,7 +360,7 @@ func finishOAuth(w http.ResponseWriter, r *http.Request, source string) {
 	p.FolderName = ""
 	p.FolderPath = ""
 	putParty(p)
-	notifyDebugSMS("Party connected " + sourceDisplayName(source) + " for " + p.Name)
+	notifyDebugSourceLogin(acc)
 	clearOAuthCookie(w)
 	http.Redirect(w, r, publicHome()+"?connected=1", http.StatusFound)
 }
