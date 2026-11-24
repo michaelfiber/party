@@ -1,4 +1,4 @@
 data/
 *.exe
-party
+/party
 .env
