@@ -1,0 +1,10 @@
+[Unit]
+Description=Check GitHub and update party if main advanced
+Documentation=file:///home/michael/party/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/michael/party/scripts/auto-update.sh
+Nice=10

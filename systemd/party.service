@@ -1,0 +1,17 @@
+[Unit]
+Description=Party Cam web server
+Documentation=file:///home/michael/party/README.md
+After=network.target
+
+[Service]
+Type=simple
+User=michael
+Group=michael
+WorkingDirectory=/home/michael/party
+ExecStart=/home/michael/party/dist/party-linux-arm64
+EnvironmentFile=-/etc/party.env
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

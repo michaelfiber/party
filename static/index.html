@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1c120c" />
+  <title>Party Cam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <div id="app">
+    <header id="mast">
+      <p class="eyebrow">Disposable cameras, without the plastic</p>
+      <h1>Party Cam</h1>
+      <p class="lede">Put a camera on every table. Guests scan a QR code, snap photos or selfies from their phone, and every shot lands in one shared album — Google Drive, Dropbox, or OneDrive.</p>
+    </header>
+
+    <p id="oauth-error" class="banner-error" hidden></p>
+    <p id="toast" hidden></p>
+
+    <div id="welcome" hidden>
+      <p>Start a party to get a QR code. Guests use their phones as cameras. You collect the album at the end.</p>
+      <form id="start-form">
+        <label>
+          Party name
+          <input id="party-name" type="text" maxlength="80" placeholder="Sam &amp; Alex, June 12" autocomplete="off" />
+        </label>
+        <button id="start-btn" type="submit">Start a party</button>
+      </form>
+    </div>
+
+    <div id="host" hidden>
+      <p id="party-title"></p>
+      <p id="cloud-note"></p>
+
+      <section id="connect" class="panel">
+        <h2>1. Connect the album</h2>
+        <p class="hint">Pick the cloud that should receive every photo. If you skip this, shots stay on this machine until you connect a folder.</p>
+        <div id="source-buttons" class="row"></div>
+        <p id="no-sources" hidden>No cloud apps are configured on this server yet. Photos will be saved locally. Add Drive, Dropbox, or OneDrive keys to <code>/etc/party.env</code>.</p>
+        <button id="disconnect-btn" type="button" hidden>Disconnect this cloud</button>
+      </section>
+
+      <section id="folders" class="panel" hidden>
+        <h2>2. Choose the folder</h2>
+        <p class="hint">Every guest photo streams into this one folder.</p>
+        <p id="folder-crumb"></p>
+        <ul id="folder-list"></ul>
+        <p id="folder-empty" hidden>No folders here yet.</p>
+        <form id="new-folder-form" class="row">
+          <label>
+            New folder
+            <input id="new-folder-name" type="text" maxlength="80" placeholder="Party Cam" />
+          </label>
+          <button type="submit">Create folder</button>
+        </form>
+      </section>
+
+      <section id="share" class="panel">
+        <h2>3. Put the camera out</h2>
+        <p class="hint">Print this QR or leave it on a tablet. Anyone who scans it becomes a camera for this party.</p>
+        <div id="share-card">
+          <img id="qr" alt="QR code guests scan to open the camera" hidden />
+          <div>
+            <p id="join-url"></p>
+            <p id="shot-count">No photos yet.</p>
+            <form id="text-form" class="row">
+              <label>
+                Text the guest link
+                <input id="text-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-0100" />
+              </label>
+              <button type="submit">Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="wall" class="panel">
+        <h2>Live album</h2>
+        <p id="wall-empty" class="hint">Waiting for the first snap.</p>
+        <ul id="wall-list"></ul>
+      </section>
+    </div>
+  </div>
+  <script src="app.js?v=1"></script>
+</body>
+</html>

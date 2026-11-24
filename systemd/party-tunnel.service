@@ -1,0 +1,18 @@
+[Unit]
+Description=Party Cam SSH reverse tunnel (cubeofb.org → localhost:3066)
+Documentation=file:///home/michael/party/README.md
+After=network-online.target party.service
+Wants=network-online.target
+Requires=party.service
+
+[Service]
+Type=simple
+User=michael
+Group=michael
+EnvironmentFile=-/etc/party.env
+ExecStart=/home/michael/party/scripts/tunnel.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

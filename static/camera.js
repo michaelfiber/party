@@ -1,0 +1,143 @@
+(() => {
+  const video = document.getElementById("preview");
+  const canvas = document.getElementById("capture");
+  const shutter = document.getElementById("shutter");
+  const flipBtn = document.getElementById("flip-btn");
+  const flash = document.getElementById("flash");
+  const nameEl = document.getElementById("cam-name");
+  const countEl = document.getElementById("cam-count");
+  const errEl = document.getElementById("cam-error");
+  const toastEl = document.getElementById("cam-toast");
+
+  let stream = null;
+  let facing = "environment";
+  let busy = false;
+  let code = "";
+
+  function partyCode() {
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    return (parts[parts.length - 1] || "").toLowerCase();
+  }
+
+  function appBase() {
+    const u = new URL(window.location.href);
+    let path = u.pathname || "/";
+    path = path.replace(/\/p\/[^/]+\/?$/, "/");
+    if (!path.endsWith("/")) path += "/";
+    u.pathname = path;
+    u.search = "";
+    u.hash = "";
+    return u;
+  }
+
+  function appURL(path) {
+    return new URL(path, appBase()).href;
+  }
+
+  function toast(msg) {
+    toastEl.hidden = !msg;
+    toastEl.textContent = msg || "";
+    if (msg) {
+      setTimeout(() => {
+        if (toastEl.textContent === msg) toastEl.hidden = true;
+      }, 2200);
+    }
+  }
+
+  function showError(msg) {
+    errEl.hidden = !msg;
+    errEl.textContent = msg || "";
+  }
+
+  async function startCamera() {
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      });
+      video.srcObject = stream;
+      await video.play();
+      showError("");
+    } catch (err) {
+      showError("Allow camera access so this phone can be the party camera.");
+    }
+  }
+
+  function captureJPEG() {
+    const srcW = video.videoWidth || 1280;
+    const srcH = video.videoHeight || 720;
+    const maxEdge = 1600;
+    let w = srcW;
+    let h = srcH;
+    if (Math.max(w, h) > maxEdge) {
+      const scale = maxEdge / Math.max(w, h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, w, h);
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.84);
+    });
+  }
+
+  async function snap() {
+    if (busy) return;
+    if (!video.videoWidth) {
+      toast("Camera is still waking up.");
+      return;
+    }
+    busy = true;
+    shutter.disabled = true;
+    flash.classList.remove("pop");
+    void flash.offsetWidth;
+    flash.classList.add("pop");
+    try {
+      const blob = await captureJPEG();
+      if (!blob) throw new Error("Could not take that photo");
+      const body = new FormData();
+      body.append("photo", blob, "shot.jpg");
+      body.append("facing", facing);
+      const res = await fetch(appURL("api/join/" + code + "/shot"), { method: "POST", body });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not send that photo");
+      countEl.textContent = String(data.count || 0);
+      toast(data.cloud ? "In the album." : "Saved. It will reach the album next.");
+    } catch (err) {
+      toast(err.message || "Could not send that photo");
+    } finally {
+      busy = false;
+      shutter.disabled = false;
+    }
+  }
+
+  flipBtn.addEventListener("click", () => {
+    facing = facing === "user" ? "environment" : "user";
+    flipBtn.textContent = facing === "user" ? "Others" : "Selfie";
+    startCamera();
+  });
+  shutter.addEventListener("click", () => snap());
+
+  code = partyCode();
+  fetch(appURL("api/join/" + code))
+    .then((res) => {
+      if (!res.ok) throw new Error("This party camera is closed.");
+      return res.json();
+    })
+    .then((data) => {
+      nameEl.textContent = data.name || "Party Cam";
+      countEl.textContent = String(data.count || 0);
+      return startCamera();
+    })
+    .catch((err) => showError(err.message || "This party camera is closed."));
+})();

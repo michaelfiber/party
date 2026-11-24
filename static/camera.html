@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1c120c" />
+  <title>Party Cam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Source+Sans+3:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css?v=1" />
+</head>
+<body class="camera-page">
+  <p id="cam-error" class="banner-error" hidden></p>
+  <p id="cam-toast" hidden></p>
+  <header id="cam-mast">
+    <p class="eyebrow" id="cam-kicker">You are holding the camera</p>
+    <h1 id="cam-name">Party Cam</h1>
+  </header>
+  <div id="viewfinder">
+    <video id="preview" autoplay playsinline muted></video>
+    <div id="flash" aria-hidden="true"></div>
+  </div>
+  <canvas id="capture" hidden></canvas>
+  <div id="cam-bar">
+    <button id="flip-btn" type="button">Selfie</button>
+    <button id="shutter" type="button" aria-label="Take a photo"></button>
+    <p id="cam-count">0</p>
+  </div>
+  <script src="../camera.js?v=1"></script>
+</body>
+</html>
