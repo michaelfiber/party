@@ -39,6 +39,7 @@ type Party struct {
 	DebugFolderID   string    `json:"debugFolderId,omitempty"`
 	DebugFolderPath string    `json:"debugFolderPath,omitempty"`
 	PhotoCount      int       `json:"photoCount"`
+	ShowKey         string    `json:"showKey,omitempty"`
 }
 
 type Shot struct {

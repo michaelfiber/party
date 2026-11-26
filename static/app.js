@@ -34,6 +34,11 @@
   const homePhone = document.getElementById("home-phone");
   const logoutBtn = document.getElementById("phone-logout");
   const backParties = document.getElementById("back-parties");
+  const showQr = document.getElementById("show-qr");
+  const showUrl = document.getElementById("show-url");
+  const showOpen = document.getElementById("show-open");
+  const showCopy = document.getElementById("show-copy");
+  const showReset = document.getElementById("show-reset");
 
   const tokenKey = "party-phone-token";
   let folderParent = "";
@@ -291,6 +296,10 @@
     joinUrl.textContent = party.joinUrl || "";
     qr.hidden = false;
     qr.src = appURL("api/qr?") + Date.now();
+    showUrl.textContent = party.showUrl || "";
+    showOpen.href = party.showUrl || "#";
+    showQr.hidden = !party.showUrl;
+    showQr.src = appURL("api/show-qr?") + Date.now();
     const n = party.photoCount || 0;
     shotCount.textContent = n === 0 ? "No photos yet." : n === 1 ? "1 photo in the album." : n + " photos in the album.";
     await loadWall();
@@ -363,6 +372,22 @@
         showLogin();
         toast("Logged out.");
       });
+  });
+
+  showCopy.addEventListener("click", () => {
+    const link = showUrl.textContent;
+    if (!link) return;
+    navigator.clipboard.writeText(link)
+      .then(() => toast("Slideshow link copied."))
+      .catch(() => toast("Copy failed. Press and hold the link to copy it."));
+  });
+
+  showReset.addEventListener("click", () => {
+    if (!window.confirm("Make a new slideshow link? Screens using the old link will stop updating.")) return;
+    postJSON("api/show/reset", {})
+      .then((data) => showHost(data))
+      .then(() => toast("New slideshow link ready."))
+      .catch((err) => toast(err.message || "Could not make a new link"));
   });
 
   changeFolderBtn.addEventListener("click", () => {

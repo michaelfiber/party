@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#2b1055" />
+  <meta name="robots" content="noindex" />
+  <title>Party Cam slideshow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Source+Sans+3:wght@500;700&display=swap" rel="stylesheet" />
+  <base href="../" />
+  <link rel="stylesheet" href="style.css?v=6" />
+</head>
+<body class="show-page">
+  <div id="stage">
+    <div class="slide" id="slide-a"><div class="slide-bg"></div><img alt="" /></div>
+    <div class="slide" id="slide-b"><div class="slide-bg"></div><img alt="" /></div>
+  </div>
+
+  <div id="show-empty">
+    <p class="eyebrow">Live slideshow</p>
+    <h1 id="show-empty-name">Party Cam</h1>
+    <p id="show-empty-msg">Waiting for the first snap…</p>
+  </div>
+
+  <header id="show-mast">
+    <h1 id="show-name">Party Cam</h1>
+    <p id="show-count"></p>
+  </header>
+
+  <p id="show-new" hidden>Just in!</p>
+
+  <aside id="show-join" hidden>
+    <img id="show-join-qr" alt="QR code to join the party camera" />
+    <p>Scan to add yours</p>
+  </aside>
+
+  <button id="show-fs" type="button">Full screen</button>
+  <script src="show.js?v=1"></script>
+</body>
+</html>

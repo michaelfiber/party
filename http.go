@@ -60,6 +60,12 @@ func appHandler() http.Handler {
 	inner.HandleFunc("GET /api/shot/{id}", handleShotFile)
 	inner.HandleFunc("GET /api/join/{code}", handleJoin)
 	inner.HandleFunc("POST /api/join/{code}/shot", handleShot)
+	inner.HandleFunc("GET /show/{key}", handleShowPage)
+	inner.HandleFunc("GET /api/show/{key}", handleShowFeed)
+	inner.HandleFunc("GET /api/show/{key}/shot/{id}", handleShowShot)
+	inner.HandleFunc("GET /api/show/{key}/qr", handleShowJoinQR)
+	inner.HandleFunc("GET /api/show-qr", handleShowQR)
+	inner.HandleFunc("POST /api/show/reset", handleShowReset)
 
 	prefix := publicPath()
 	if prefix == "" {
@@ -106,6 +112,7 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func hostStatus(r *http.Request, p *Party) map[string]any {
+	ensureShowKey(p)
 	cloud := map[string]any{"connected": false}
 	if p.Account != nil {
 		cloud = map[string]any{
@@ -129,6 +136,7 @@ func hostStatus(r *http.Request, p *Party) map[string]any {
 			"code":       p.Code,
 			"name":       p.Name,
 			"joinUrl":    joinURL(r, p.Code),
+			"showUrl":    showURL(r, p),
 			"photoCount": p.PhotoCount,
 			"createdAt":  p.Created,
 			"cloud":      cloud,
