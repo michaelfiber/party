@@ -282,7 +282,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 #login[hidden], #home[hidden], #host[hidden], .panel[hidden], #oauth-error[hidden],
 #toast[hidden], #cam-error[hidden], #cam-toast[hidden], #qr[hidden],
 #no-sources[hidden], #folders[hidden], #disconnect-btn[hidden],
-#change-folder-btn[hidden], #show-qr[hidden], #cloud-status[hidden], #source-buttons[hidden],
+#change-folder-btn[hidden], #show-qr[hidden], #show-top[hidden], #cloud-status[hidden], #source-buttons[hidden],
 #folder-empty[hidden], #wall-empty[hidden], #login-code-form[hidden],
 #party-empty[hidden], #phone-logout[hidden] {
   display: none !important;
@@ -555,4 +555,22 @@ body.idle { cursor: none; }
 
 #show-empty[hidden], #show-new[hidden], #show-join[hidden], #show-fs[hidden] {
   display: none !important;
+}
+
+#party-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin: 0 0 0.35rem;
+}
+
+#party-head #party-title { margin: 0; }
+
+#show-top {
+  font-size: 1.05rem;
+  padding: 0.75rem 1.3rem;
+  background: linear-gradient(135deg, #00c2b8 0%, #7b2ff7 100%);
+  box-shadow: 0 4px 0 #4a1a9e, 0 0 20px rgba(0, 194, 184, 0.5);
 }

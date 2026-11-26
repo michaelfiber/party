@@ -39,6 +39,7 @@
   const showOpen = document.getElementById("show-open");
   const showCopy = document.getElementById("show-copy");
   const showReset = document.getElementById("show-reset");
+  const showTop = document.getElementById("show-top");
 
   const tokenKey = "party-phone-token";
   let folderParent = "";
@@ -298,6 +299,8 @@
     qr.src = appURL("api/qr?") + Date.now();
     showUrl.textContent = party.showUrl || "";
     showOpen.href = party.showUrl || "#";
+    showTop.href = party.showUrl || "#";
+    showTop.hidden = !party.showUrl;
     showQr.hidden = !party.showUrl;
     showQr.src = appURL("api/show-qr?") + Date.now();
     const n = party.photoCount || 0;
