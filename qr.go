@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	qrDark  = color.RGBA{R: 28, G: 18, B: 12, A: 255}
-	qrLight = color.RGBA{R: 255, G: 244, B: 220, A: 255}
+	qrDark  = color.RGBA{R: 43, G: 16, B: 85, A: 255}
+	qrLight = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 )
 
 func qrPNG(content string) ([]byte, error) {
@@ -35,7 +35,11 @@ func handleShareQR(w http.ResponseWriter, r *http.Request) {
 	if p == nil {
 		return
 	}
-	pngBytes, err := qrPNG(joinURL(r, p.Code))
+	writeQR(w, joinURL(r, p.Code))
+}
+
+func writeQR(w http.ResponseWriter, content string) {
+	pngBytes, err := qrPNG(content)
 	if err != nil {
 		http.Error(w, "could not draw the QR code", http.StatusInternalServerError)
 		return
