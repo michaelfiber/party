@@ -34,6 +34,7 @@
   const homePhone = document.getElementById("home-phone");
   const logoutBtn = document.getElementById("phone-logout");
   const backParties = document.getElementById("back-parties");
+  const howEl = document.getElementById("how");
   const showQr = document.getElementById("show-qr");
   const showUrl = document.getElementById("show-url");
   const showOpen = document.getElementById("show-open");
@@ -176,6 +177,7 @@
     loginEl.hidden = false;
     homeEl.hidden = true;
     host.hidden = true;
+    howEl.hidden = false;
     loginPhoneForm.hidden = false;
     loginCodeForm.hidden = true;
     loginCode.value = "";
@@ -219,6 +221,7 @@
     loginEl.hidden = true;
     homeEl.hidden = false;
     host.hidden = true;
+    howEl.hidden = false;
     homePhone.textContent = data && data.phone ? "Parties on " + data.phone : "Your parties";
     renderPartyList(data && data.parties);
     renderSources(data);
@@ -264,6 +267,7 @@
     loginEl.hidden = true;
     homeEl.hidden = true;
     host.hidden = false;
+    howEl.hidden = true;
     const party = data.party || {};
     const cloud = party.cloud || {};
     partyTitle.textContent = party.name || "Your party";

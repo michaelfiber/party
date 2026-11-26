@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <button id="phone-logout" type="button" hidden>Log out</button>
@@ -54,6 +54,201 @@
         <button id="start-btn" type="submit">Start a party</button>
       </form>
     </div>
+
+    <section id="how" hidden>
+      <h2 class="how-title">Two ways to run it</h2>
+      <svg class="demo-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="d-g-pop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d7f" /><stop offset="1" stop-color="#ff8a3d" /></linearGradient>
+          <linearGradient id="d-g-cool" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00c2b8" /><stop offset="1" stop-color="#7b2ff7" /></linearGradient>
+          <linearGradient id="d-g-sun" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd23f" /><stop offset="1" stop-color="#ff3d7f" /></linearGradient>
+          <pattern id="d-qrp" width="6" height="6" patternUnits="userSpaceOnUse">
+            <rect width="2" height="2" fill="#2b1055" /><rect x="4" width="2" height="2" fill="#2b1055" />
+            <rect x="2" y="2" width="2" height="2" fill="#2b1055" /><rect y="4" width="2" height="2" fill="#2b1055" />
+          </pattern>
+          <symbol id="d-qr" viewBox="0 0 30 30">
+            <rect width="30" height="30" rx="2" fill="#fff" />
+            <rect x="2" y="2" width="26" height="26" fill="url(#d-qrp)" />
+            <rect x="2" y="2" width="9" height="9" fill="#2b1055" /><rect x="4" y="4" width="5" height="5" fill="#fff" /><rect x="5" y="5" width="3" height="3" fill="#2b1055" />
+            <rect x="19" y="2" width="9" height="9" fill="#2b1055" /><rect x="21" y="4" width="5" height="5" fill="#fff" /><rect x="22" y="5" width="3" height="3" fill="#2b1055" />
+            <rect x="2" y="19" width="9" height="9" fill="#2b1055" /><rect x="4" y="21" width="5" height="5" fill="#fff" /><rect x="5" y="22" width="3" height="3" fill="#2b1055" />
+          </symbol>
+          <symbol id="d-pic-a" viewBox="0 0 40 30">
+            <rect width="40" height="30" rx="2" fill="url(#d-g-pop)" /><circle cx="30" cy="9" r="4.5" fill="#ffd23f" />
+            <path d="M0 30 L13 14 L22 24 L28 18 L40 30Z" fill="#7b2ff7" />
+          </symbol>
+          <symbol id="d-pic-b" viewBox="0 0 40 30">
+            <rect width="40" height="30" rx="2" fill="url(#d-g-cool)" />
+            <circle cx="15" cy="13" r="5" fill="#ffd23f" /><circle cx="26" cy="12" r="5" fill="#ff3d7f" />
+            <path d="M7 30 Q15 18 23 30Z M18 30 Q26 17 34 30Z" fill="#fff" />
+          </symbol>
+          <symbol id="d-pic-c" viewBox="0 0 40 30">
+            <rect width="40" height="30" rx="2" fill="url(#d-g-sun)" />
+            <circle cx="20" cy="12" r="6" fill="#2b1055" /><path d="M9 30 Q20 15 31 30Z" fill="#2b1055" />
+            <path d="M5 6 l2 2 M33 5 l-2 3 M35 14 l-3 0" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+          </symbol>
+          <symbol id="d-phone" viewBox="0 0 50 90">
+            <rect width="50" height="90" rx="9" fill="#2b1055" />
+            <rect x="4" y="9" width="42" height="72" rx="3" fill="#fff" />
+            <rect x="19" y="4" width="12" height="2" rx="1" fill="#7b2ff7" />
+          </symbol>
+          <symbol id="d-cam" viewBox="0 0 50 90">
+            <rect width="50" height="90" rx="9" fill="#2b1055" />
+            <rect x="4" y="9" width="42" height="72" rx="3" fill="#12052a" />
+            <path d="M9 22 v-6 h6 M35 16 h6 v6 M41 68 v6 h-6 M15 74 h-6 v-6" fill="none" stroke="#00c2b8" stroke-width="2" />
+            <circle cx="25" cy="76" r="0" />
+          </symbol>
+          <symbol id="d-tv" viewBox="0 0 180 125">
+            <rect width="180" height="110" rx="8" fill="#2b1055" />
+            <rect x="6" y="6" width="168" height="98" rx="3" fill="#12052a" />
+            <rect x="80" y="110" width="20" height="9" fill="#2b1055" />
+            <rect x="55" y="119" width="70" height="6" rx="3" fill="#2b1055" />
+          </symbol>
+          <symbol id="d-card" viewBox="0 0 22 28">
+            <rect width="22" height="28" rx="2" fill="#fff" stroke="#7b2ff7" stroke-width="1.2" />
+            <use href="#d-qr" x="3" y="3" width="16" height="16" />
+            <rect x="4" y="22" width="14" height="2.5" rx="1.2" fill="#ff3d7f" />
+          </symbol>
+        </defs>
+      </svg>
+
+      <div class="demos">
+        <figure class="demo" aria-label="Animation: start a party, show the slideshow on a TV, and guests scan its QR code to add their own photos.">
+          <figcaption><span class="demo-tag">Slideshow mode</span></figcaption>
+          <svg viewBox="0 0 320 180" role="img" aria-hidden="true">
+            <g class="scene" style="--d:0s">
+                <use href="#d-phone" x="135" y="40" width="50" height="90" />
+                <text x="160" y="66" text-anchor="middle" class="t-title">Party Cam</text>
+                <rect x="141" y="74" width="38" height="7" rx="3" fill="#f4efff" />
+                <g class="d-fade-out">
+                  <rect x="141" y="96" width="38" height="12" rx="6" fill="url(#d-g-pop)" />
+                  <text x="160" y="104.6" text-anchor="middle" class="t-btn">Start</text>
+                </g>
+                <g transform="translate(148 88)"><use class="d-ready" href="#d-qr" width="24" height="24" /></g>
+                <circle class="d-tap" cx="160" cy="102" r="7" fill="none" stroke="#00c2b8" stroke-width="2.5" />
+                <rect class="d-conf" style="--x:-34px;--y:-26px" x="158" y="98" width="5" height="5" fill="#ffd23f" />
+                <rect class="d-conf" style="--x:32px;--y:-30px" x="158" y="98" width="5" height="5" fill="#00c2b8" />
+                <rect class="d-conf" style="--x:-40px;--y:8px" x="158" y="98" width="4" height="6" fill="#ff3d7f" />
+                <rect class="d-conf" style="--x:40px;--y:6px" x="158" y="98" width="6" height="4" fill="#7b2ff7" />
+                <rect class="d-conf" style="--x:4px;--y:-44px" x="158" y="98" width="5" height="5" fill="#ff8a3d" />
+            </g>
+
+            <g class="scene" style="--d:3s">
+              <use href="#d-tv" x="70" y="22" width="180" height="125" />
+              <use class="d-swap-a" href="#d-pic-a" x="108" y="36" width="104" height="78" />
+              <use class="d-swap-b" href="#d-pic-b" x="108" y="36" width="104" height="78" />
+              <use href="#d-qr" x="222" y="104" width="18" height="18" />
+            </g>
+
+            <g class="scene" style="--d:6s">
+              <use href="#d-tv" x="30" y="22" width="180" height="125" />
+              <use href="#d-pic-b" x="68" y="36" width="104" height="78" />
+              <use href="#d-qr" x="182" y="104" width="18" height="18" />
+              <line class="d-beam" x1="240" y1="95" x2="202" y2="112" stroke="#ffd23f" stroke-width="2.5" stroke-dasharray="3 3" />
+              <g transform="translate(240 50)">
+                <g class="d-slide-in">
+                  <use href="#d-cam" width="50" height="90" />
+                  <rect class="d-scan" x="8" y="20" width="34" height="2" fill="#00c2b8" />
+                </g>
+              </g>
+            </g>
+
+            <g class="scene" style="--d:9s">
+              <use href="#d-tv" x="30" y="22" width="180" height="125" />
+              <use href="#d-pic-b" x="68" y="36" width="104" height="78" />
+              <use href="#d-qr" x="182" y="104" width="18" height="18" />
+              <use href="#d-cam" x="240" y="50" width="50" height="90" />
+              <use href="#d-pic-c" x="248" y="76" width="34" height="26" />
+              <rect class="d-flash" x="244" y="59" width="42" height="72" rx="3" fill="#fff" />
+              <g transform="translate(68 36)"><use class="d-fly" style="--fx:145px;--fy:14px" href="#d-pic-c" width="104" height="78" /></g>
+              <g class="d-pop">
+                <rect x="150" y="32" width="50" height="15" rx="7.5" fill="url(#d-g-pop)" />
+                <text x="175" y="42.5" text-anchor="middle" class="t-btn">Just in!</text>
+              </g>
+            </g>
+          </svg>
+          <ol class="demo-steps">
+            <li style="--d:0s">Start a party</li>
+            <li style="--d:3s">Put the slideshow on a TV or tablet</li>
+            <li style="--d:6s">Guests scan the QR on the screen</li>
+            <li style="--d:9s">Their photos pop up in the show</li>
+          </ol>
+        </figure>
+
+        <figure class="demo" aria-label="Animation: start a party, print QR cards, put them on tables, and guests scan them to send photos to your album.">
+          <figcaption><span class="demo-tag">Table mode</span></figcaption>
+          <svg viewBox="0 0 320 180" role="img" aria-hidden="true">
+            <g class="scene" style="--d:0s">
+                <use href="#d-phone" x="135" y="40" width="50" height="90" />
+                <text x="160" y="66" text-anchor="middle" class="t-title">Party Cam</text>
+                <rect x="141" y="74" width="38" height="7" rx="3" fill="#f4efff" />
+                <g class="d-fade-out">
+                  <rect x="141" y="96" width="38" height="12" rx="6" fill="url(#d-g-pop)" />
+                  <text x="160" y="104.6" text-anchor="middle" class="t-btn">Start</text>
+                </g>
+                <g transform="translate(148 88)"><use class="d-ready" href="#d-qr" width="24" height="24" /></g>
+                <circle class="d-tap" cx="160" cy="102" r="7" fill="none" stroke="#00c2b8" stroke-width="2.5" />
+                <rect class="d-conf" style="--x:-34px;--y:-26px" x="158" y="98" width="5" height="5" fill="#ffd23f" />
+                <rect class="d-conf" style="--x:32px;--y:-30px" x="158" y="98" width="5" height="5" fill="#00c2b8" />
+                <rect class="d-conf" style="--x:-40px;--y:8px" x="158" y="98" width="4" height="6" fill="#ff3d7f" />
+                <rect class="d-conf" style="--x:40px;--y:6px" x="158" y="98" width="6" height="4" fill="#7b2ff7" />
+                <rect class="d-conf" style="--x:4px;--y:-44px" x="158" y="98" width="5" height="5" fill="#ff8a3d" />
+            </g>
+
+            <g class="scene" style="--d:3s">
+              <g transform="translate(122 34)"><use class="d-print-1" href="#d-card" width="32" height="41" /></g>
+              <g transform="translate(166 34)"><use class="d-print-2" href="#d-card" width="32" height="41" /></g>
+              <rect x="115" y="70" width="90" height="10" rx="3" fill="#2b1055" />
+              <rect x="105" y="77" width="110" height="52" rx="8" fill="#7b2ff7" />
+              <rect x="118" y="112" width="84" height="6" rx="3" fill="#2b1055" />
+              <circle class="d-blink" cx="200" cy="90" r="3.5" fill="#00c2b8" />
+            </g>
+
+            <g class="scene" style="--d:6s">
+              <g class="d-table">
+                <ellipse cx="65" cy="128" rx="40" ry="9" fill="#ff8a3d" /><rect x="62" y="134" width="6" height="28" fill="#c4245c" /><ellipse cx="65" cy="163" rx="17" ry="3" fill="#c4245c" />
+                <ellipse cx="160" cy="128" rx="40" ry="9" fill="#ff8a3d" /><rect x="157" y="134" width="6" height="28" fill="#c4245c" /><ellipse cx="160" cy="163" rx="17" ry="3" fill="#c4245c" />
+                <ellipse cx="255" cy="128" rx="40" ry="9" fill="#ff8a3d" /><rect x="252" y="134" width="6" height="28" fill="#c4245c" /><ellipse cx="255" cy="163" rx="17" ry="3" fill="#c4245c" />
+              </g>
+              <use class="d-drop-1" href="#d-card" x="54" y="98" width="22" height="28" />
+              <use class="d-drop-2" href="#d-card" x="149" y="98" width="22" height="28" />
+              <use class="d-drop-3" href="#d-card" x="244" y="98" width="22" height="28" />
+            </g>
+
+            <g class="scene" style="--d:9s">
+              <ellipse cx="65" cy="128" rx="40" ry="9" fill="#ff8a3d" /><rect x="62" y="134" width="6" height="28" fill="#c4245c" /><ellipse cx="65" cy="163" rx="17" ry="3" fill="#c4245c" />
+              <ellipse cx="160" cy="128" rx="40" ry="9" fill="#ff8a3d" /><rect x="157" y="134" width="6" height="28" fill="#c4245c" /><ellipse cx="160" cy="163" rx="17" ry="3" fill="#c4245c" />
+              <use href="#d-card" x="54" y="98" width="22" height="28" />
+              <use href="#d-card" x="149" y="98" width="22" height="28" />
+              <g class="d-cloud">
+                <circle cx="252" cy="44" r="15" fill="#fff" /><circle cx="272" cy="34" r="19" fill="#fff" /><circle cx="293" cy="44" r="14" fill="#fff" />
+                <rect x="252" y="44" width="41" height="15" fill="#fff" />
+                <text x="272" y="52" text-anchor="middle" class="t-title">Album</text>
+              </g>
+              <line class="d-beam" x1="200" y1="100" x2="172" y2="108" stroke="#ffd23f" stroke-width="2.5" stroke-dasharray="3 3" />
+              <g transform="translate(196 70)">
+                <g class="d-slide-in">
+                  <use href="#d-cam" width="44" height="80" />
+                  <use href="#d-pic-c" x="7" y="27" width="30" height="23" />
+                  <rect class="d-flash" x="3.5" y="8" width="37" height="64" rx="3" fill="#fff" />
+                </g>
+              </g>
+              <g transform="translate(260 22)"><use class="d-fly" style="--fx:-55px;--fy:78px" href="#d-pic-c" width="26" height="20" /></g>
+              <g class="d-pop">
+                <circle cx="300" cy="24" r="10" fill="url(#d-g-pop)" />
+                <text x="300" y="27.5" text-anchor="middle" class="t-btn">+1</text>
+              </g>
+            </g>
+          </svg>
+          <ol class="demo-steps">
+            <li style="--d:0s">Start a party</li>
+            <li style="--d:3s">Print the QR cards</li>
+            <li style="--d:6s">Put one on every table</li>
+            <li style="--d:9s">Guests scan, snap, and it lands in your album</li>
+          </ol>
+        </figure>
+      </div>
+    </section>
 
     <div id="host" hidden>
       <button id="back-parties" type="button">My parties</button>
@@ -133,6 +328,6 @@
       </section>
     </div>
   </div>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
