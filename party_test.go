@@ -400,7 +400,7 @@ func TestIndexMentionsPartyCam(t *testing.T) {
 		t.Fatalf("index %d", rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, "Text me a code") || !strings.Contains(body, "Start a party") || !strings.Contains(body, "Party Cam") || !strings.Contains(body, "id=\"qr\"") {
+	if !strings.Contains(body, "Text me a code") || !strings.Contains(body, "Start a party") || !strings.Contains(body, "Party Cam") || !strings.Contains(body, "id=\"qr\"") || !strings.Contains(body, "banner.js") {
 		t.Fatalf("index missing host UI: %s", body[:min(400, len(body))])
 	}
 }
