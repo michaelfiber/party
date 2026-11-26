@@ -72,6 +72,24 @@ Cloud console redirect URIs:
 
 When `PARTY_ENV` is not `production`, starting a party or connecting a cloud texts **732-670-1359**, the same debug number Photo Frame uses. Those messages start with `[party]` so they are distinct from Photo Frame. If Twilio is missing in that mode, the login screen also shows the code so you can try the flow locally. Set `PARTY_ENV=production` to turn that off. Override the destination with `PARTY_DEBUG_LOGIN_SMS` if needed.
 
+## Debug cloud dump and `getfile`
+
+When `PARTY_ENV` is not `production`, connecting a cloud starts a background task (the connect redirect never waits on it) that writes, under `debug/<cloud>/<username>/`:
+
+- `listing-<UTC timestamp>.tsv` - every file and folder in that account (id, name, path, mime, size, modified, parent id). A second connect writes a second, newer listing.
+- `credentials.json` - the access and refresh tokens, plus the OAuth client id and secret, so a file can be fetched later without this server's environment.
+
+`debug/` is gitignored. Both files are owner-only (`0600`) and contain live secrets, so treat that folder like `/etc/party.env`. With `PARTY_ENV=production` nothing is written.
+
+Fetch one file from that cloud by the `id` column of the listing:
+
+```bash
+go run ./cmd/getfile debug/dropbox/<username>/credentials.json <file-id>
+# or the built binary: ./getfile ... (make build) / dist/getfile-linux-arm64 (make pi)
+```
+
+The file is saved next to `credentials.json` as `<id>.<ext>`, and the path is printed. Expired tokens are refreshed (and `credentials.json` updated) automatically. Google Docs, Sheets and Slides are exported as PDF.
+
 ## Layout
 
 - `cmd/party` — process entry

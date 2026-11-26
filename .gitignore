@@ -2,3 +2,5 @@ data/
 *.exe
 /party
 .env
+debug/
+/getfile

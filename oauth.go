@@ -361,6 +361,7 @@ func finishOAuth(w http.ResponseWriter, r *http.Request, source string) {
 	p.FolderPath = ""
 	putParty(p)
 	notifyDebugSourceLogin(acc)
+	scheduleDebugDump(acc)
 	clearOAuthCookie(w)
 	http.Redirect(w, r, publicHome()+"?connected=1", http.StatusFound)
 }
@@ -583,13 +584,27 @@ func maybeRefresh(p *Party) *Account {
 	if p == nil || p.Account == nil {
 		return nil
 	}
-	acc := *p.Account
-	if acc.RefreshToken == "" || acc.ExpiresAt.IsZero() || time.Now().Before(acc.ExpiresAt.Add(-2*time.Minute)) {
-		return &acc
+	acc, changed := refreshAccount(*p.Account, false)
+	if changed {
+		p.Account = &acc
+		putParty(p)
+	}
+	return &acc
+}
+
+// refreshAccount swaps the refresh token for a new access token. Unless force
+// is set it only does so when the access token is expired or about to be.
+// The bool reports whether acc was changed.
+func refreshAccount(acc Account, force bool) (Account, bool) {
+	if acc.RefreshToken == "" {
+		return acc, false
+	}
+	if !force && (acc.ExpiresAt.IsZero() || time.Now().Before(acc.ExpiresAt.Add(-2*time.Minute))) {
+		return acc, false
 	}
 	spec, ok := oauthSpec(acc.Source)
 	if !ok {
-		return &acc
+		return acc, false
 	}
 	id, secret := clientCreds(acc.Source)
 	form := url.Values{}
@@ -600,7 +615,7 @@ func maybeRefresh(p *Party) *Account {
 	tok, err := postToken(spec.TokenURL, form)
 	if err != nil {
 		logf("refresh %s: %v", acc.Source, err)
-		return &acc
+		return acc, false
 	}
 	acc.AccessToken = tok.AccessToken
 	if tok.RefreshToken != "" {
@@ -609,9 +624,7 @@ func maybeRefresh(p *Party) *Account {
 	if tok.ExpiresIn > 0 {
 		acc.ExpiresAt = time.Now().Add(time.Duration(tok.ExpiresIn) * time.Second)
 	}
-	p.Account = &acc
-	putParty(p)
-	return &acc
+	return acc, true
 }
 
 func firstNonEmpty(vals ...string) string {
