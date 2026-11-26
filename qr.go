@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"image/png"
 	"net/http"
+	"strconv"
 
 	"github.com/skip2/go-qrcode"
 )
@@ -15,6 +16,10 @@ var (
 )
 
 func qrPNG(content string) ([]byte, error) {
+	return qrPNGSize(content, 360)
+}
+
+func qrPNGSize(content string, size int) ([]byte, error) {
 	code, err := qrcode.New(content, qrcode.Medium)
 	if err != nil {
 		return nil, err
@@ -22,7 +27,7 @@ func qrPNG(content string) ([]byte, error) {
 	code.DisableBorder = false
 	code.ForegroundColor = qrDark
 	code.BackgroundColor = qrLight
-	img := code.Image(360)
+	img := code.Image(size)
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, img); err != nil {
 		return nil, err
@@ -35,11 +40,19 @@ func handleShareQR(w http.ResponseWriter, r *http.Request) {
 	if p == nil {
 		return
 	}
-	writeQR(w, joinURL(r, p.Code))
+	size := 360
+	if n, err := strconv.Atoi(r.URL.Query().Get("size")); err == nil {
+		size = min(max(n, 128), 1200)
+	}
+	writeQRSize(w, joinURL(r, p.Code), size)
 }
 
 func writeQR(w http.ResponseWriter, content string) {
-	pngBytes, err := qrPNG(content)
+	writeQRSize(w, content, 360)
+}
+
+func writeQRSize(w http.ResponseWriter, content string, size int) {
+	pngBytes, err := qrPNGSize(content, size)
 	if err != nil {
 		http.Error(w, "could not draw the QR code", http.StatusInternalServerError)
 		return

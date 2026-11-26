@@ -2,6 +2,7 @@ package party
 
 import (
 	"encoding/json"
+	"image/png"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -89,5 +90,31 @@ func TestLegalPagesLinkedFromHome(t *testing.T) {
 		if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "<h1>"+want+"</h1>") {
 			t.Fatalf("%s: %d", path, rec.Code)
 		}
+	}
+}
+
+func TestPrintPageAndLargeQR(t *testing.T) {
+	h := appHandler()
+	page := httptest.NewRecorder()
+	h.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/print", nil))
+	if page.Code != http.StatusOK || !strings.Contains(page.Body.String(), "they go straight to the host's cloud") {
+		t.Fatalf("print page: %d", page.Code)
+	}
+
+	chdirTemp(t)
+	created, auth := startTestParty(t, "Print me")
+	qr := httptest.NewRecorder()
+	h.ServeHTTP(qr, requestWithCookies(http.MethodGet, "/api/qr?size=900", nil, ownerCookies(created, auth)...))
+	if qr.Code != http.StatusOK {
+		t.Fatalf("qr: %d", qr.Code)
+	}
+	img, err := png.Decode(qr.Body)
+	if err != nil || img.Bounds().Dx() != 900 {
+		t.Fatalf("qr size: %v %v", err, img)
+	}
+	anon := httptest.NewRecorder()
+	h.ServeHTTP(anon, httptest.NewRequest(http.MethodGet, "/api/qr?size=900", nil))
+	if anon.Code != http.StatusUnauthorized {
+		t.Fatalf("anonymous qr: %d", anon.Code)
 	}
 }

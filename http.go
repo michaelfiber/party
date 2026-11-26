@@ -49,6 +49,7 @@ func appHandler() http.Handler {
 	inner.HandleFunc("POST /api/parties/open", handleOpenParty)
 	inner.HandleFunc("POST /api/parties/delete", handleDeleteParty)
 	inner.HandleFunc("GET /terms", serveStaticPage("terms.html"))
+	inner.HandleFunc("GET /print", serveStaticPage("print.html"))
 	inner.HandleFunc("GET /privacy", serveStaticPage("privacy.html"))
 	inner.HandleFunc("POST /api/party", handleCreateParty)
 	inner.HandleFunc("GET /api/oauth/{source}/start", handleOAuthStart)
