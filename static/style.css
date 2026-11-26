@@ -106,7 +106,7 @@ button {
   cursor: pointer;
 }
 
-button.ghost, #disconnect-btn, #source-buttons button {
+button.ghost, #disconnect-btn, #change-folder-btn, #source-buttons button {
   background: transparent;
   color: var(--paper);
   border: 2px solid rgba(232, 220, 200, 0.45);
@@ -244,6 +244,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 #login[hidden], #home[hidden], #host[hidden], .panel[hidden], #oauth-error[hidden],
 #toast[hidden], #cam-error[hidden], #cam-toast[hidden], #qr[hidden],
 #no-sources[hidden], #folders[hidden], #disconnect-btn[hidden],
+#change-folder-btn[hidden], #cloud-status[hidden], #source-buttons[hidden],
 #folder-empty[hidden], #wall-empty[hidden], #login-code-form[hidden],
 #party-empty[hidden], #phone-logout[hidden] {
   display: none !important;
@@ -369,3 +370,10 @@ button:disabled { opacity: 0.5; cursor: default; }
   input, .panel button, #start-btn, #login button { width: 100%; }
   .row { align-items: stretch; }
 }
+
+#cloud-status {
+  margin: 0 0 0.8rem;
+  line-height: 1.45;
+}
+
+#cloud-status strong { color: var(--gilt); }

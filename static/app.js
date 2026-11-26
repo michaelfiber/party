@@ -9,6 +9,8 @@
   const sourceButtons = document.getElementById("source-buttons");
   const noSources = document.getElementById("no-sources");
   const disconnectBtn = document.getElementById("disconnect-btn");
+  const changeFolderBtn = document.getElementById("change-folder-btn");
+  const cloudStatus = document.getElementById("cloud-status");
   const foldersEl = document.getElementById("folders");
   const folderList = document.getElementById("folder-list");
   const folderEmpty = document.getElementById("folder-empty");
@@ -262,15 +264,28 @@
     renderSources(data);
     if (cloud.source) connectedSource = cloud.source;
     disconnectBtn.hidden = !cloud.connected;
+    sourceButtons.hidden = !!cloud.connected;
+    changeFolderBtn.hidden = !cloud.ready;
+    cloudStatus.hidden = !cloud.connected;
+    const label = cloud.label || "the cloud";
+    const account = cloud.account ? " (" + cloud.account + ")" : "";
     if (!cloud.connected) {
       cloudNote.textContent = "Connect a cloud so every guest photo streams into one folder.";
+      cloudStatus.textContent = "";
       foldersEl.hidden = true;
     } else if (!cloud.ready) {
-      cloudNote.textContent = "Connected to " + (cloud.label || "the cloud") + " as " + (cloud.account || "you") + ". Choose the folder.";
+      cloudNote.textContent = "Connected to " + label + account + ". Choose the folder.";
+      cloudStatus.textContent = "Connected to " + label + account + ". No folder chosen yet.";
       foldersEl.hidden = false;
       await loadFolders("");
     } else {
-      cloudNote.textContent = "Saving to " + (cloud.label || "the cloud") + " / " + (cloud.folderName || cloud.folderPath || "the party folder") + ".";
+      const folderName = cloud.folderName || cloud.folderPath || "the party folder";
+      cloudNote.textContent = "Saving to " + label + " / " + folderName + ".";
+      cloudStatus.innerHTML = "";
+      cloudStatus.append("Photos are going to ");
+      const strong = document.createElement("strong");
+      strong.textContent = label + " / " + folderName;
+      cloudStatus.append(strong, account + ".");
       foldersEl.hidden = true;
     }
     joinUrl.textContent = party.joinUrl || "";
@@ -348,6 +363,12 @@
         showLogin();
         toast("Logged out.");
       });
+  });
+
+  changeFolderBtn.addEventListener("click", () => {
+    foldersEl.hidden = false;
+    loadFolders("").catch((err) => toast(err.message));
+    foldersEl.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   disconnectBtn.addEventListener("click", () => {

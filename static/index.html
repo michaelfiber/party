@@ -63,9 +63,13 @@
       <section id="connect" class="panel">
         <h2>1. Connect the album</h2>
         <p class="hint">Pick the cloud that should receive every photo. If you skip this, shots stay on this machine until you connect a folder.</p>
+        <p id="cloud-status" hidden></p>
         <div id="source-buttons" class="row"></div>
         <p id="no-sources" hidden>No cloud apps are configured on this server yet. Photos will be saved locally. Add Drive, Dropbox, or OneDrive keys to <code>/etc/party.env</code>.</p>
-        <button id="disconnect-btn" type="button" hidden>Disconnect this cloud</button>
+        <div class="row">
+          <button id="change-folder-btn" type="button" hidden>Change folder</button>
+          <button id="disconnect-btn" type="button" hidden>Disconnect this cloud</button>
+        </div>
       </section>
 
       <section id="folders" class="panel" hidden>
