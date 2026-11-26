@@ -44,6 +44,7 @@
 
   const tokenKey = "party-phone-token";
   let folderParent = "";
+  let folderStack = [];
   let pollTimer = null;
   let connectedSource = "google";
   let loginPhoneValue = "";
@@ -256,11 +257,25 @@
     syncLogout();
   }
 
-  async function loadFolders(parent) {
-    folderParent = parent || "";
-    folderCrumb.textContent = folderParent ? "Inside this folder" : "Top of the drive";
-    const res = await getJSON("api/folders" + (folderParent ? "?parent=" + encodeURIComponent(folderParent) : ""));
+  const folderBack = document.getElementById("folder-back");
+  const folderUseCurrent = document.getElementById("folder-use-current");
+  const folderTopHint = document.getElementById("folder-top-hint");
+
+  function folderKey(folder) {
+    return folder.id || folder.path || "";
+  }
+
+  // `stack` is the chain of folders opened from the top of the drive, so we
+  // can show the path, jump back to any level, and select the current folder.
+  async function loadFolders(stack) {
+    const next = Array.isArray(stack) ? stack : [];
+    const current = next[next.length - 1];
+    const parent = current ? folderKey(current) : "";
+    const res = await getJSON("api/folders" + (parent ? "?parent=" + encodeURIComponent(parent) : ""));
     const folders = res.folders || [];
+    folderStack = next;
+    folderParent = parent;
+    renderCrumb();
     folderList.innerHTML = "";
     folderEmpty.hidden = folders.length > 0;
     folders.forEach((folder) => {
@@ -268,7 +283,7 @@
       const open = document.createElement("button");
       open.type = "button";
       open.textContent = folder.name;
-      open.addEventListener("click", () => loadFolders(folder.id || folder.path).catch((err) => toast(err.message)));
+      open.addEventListener("click", () => loadFolders(folderStack.concat([folder])).catch((err) => toast(err.message)));
       const use = document.createElement("button");
       use.type = "button";
       use.textContent = "Use this folder";
@@ -277,6 +292,38 @@
       li.appendChild(use);
       folderList.appendChild(li);
     });
+  }
+
+  function renderCrumb() {
+    folderCrumb.innerHTML = "";
+    const trail = [{ name: "Top of the drive" }].concat(folderStack);
+    trail.forEach((item, i) => {
+      if (i > 0) {
+        const sep = document.createElement("span");
+        sep.className = "crumb-sep";
+        sep.textContent = "/";
+        sep.setAttribute("aria-hidden", "true");
+        folderCrumb.appendChild(sep);
+      }
+      if (i === trail.length - 1) {
+        const here = document.createElement("strong");
+        here.textContent = item.name;
+        here.setAttribute("aria-current", "location");
+        folderCrumb.appendChild(here);
+        return;
+      }
+      const jump = document.createElement("button");
+      jump.type = "button";
+      jump.className = "crumb";
+      jump.textContent = item.name;
+      jump.addEventListener("click", () => loadFolders(folderStack.slice(0, i)).catch((err) => toast(err.message)));
+      folderCrumb.appendChild(jump);
+    });
+    const current = folderStack[folderStack.length - 1];
+    folderBack.hidden = !current;
+    folderUseCurrent.hidden = !current;
+    folderTopHint.hidden = !!current;
+    if (current) folderUseCurrent.textContent = "Use \u201c" + (current.name || "this folder") + "\u201d";
   }
 
   async function selectFolder(folder) {
@@ -315,7 +362,7 @@
       cloudNote.textContent = "Connected to " + label + account + ". Choose the folder.";
       cloudStatus.textContent = "Connected to " + label + account + ". No folder chosen yet.";
       foldersEl.hidden = false;
-      await loadFolders("");
+      await loadFolders([]);
     } else {
       const folderName = cloud.folderName || cloud.folderPath || "the party folder";
       cloudNote.textContent = "Saving to " + label + " / " + folderName + ".";
@@ -425,9 +472,18 @@
       .catch((err) => toast(err.message || "Could not make a new link"));
   });
 
+  folderBack.addEventListener("click", () => {
+    loadFolders(folderStack.slice(0, -1)).catch((err) => toast(err.message));
+  });
+
+  folderUseCurrent.addEventListener("click", () => {
+    const current = folderStack[folderStack.length - 1];
+    if (current) selectFolder(current).catch((err) => toast(err.message));
+  });
+
   changeFolderBtn.addEventListener("click", () => {
     foldersEl.hidden = false;
-    loadFolders("").catch((err) => toast(err.message));
+    loadFolders([]).catch((err) => toast(err.message));
     foldersEl.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 

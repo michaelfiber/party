@@ -130,7 +130,7 @@ button {
 button:hover:not(:disabled) { transform: translateY(-1px); }
 button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #c4245c; }
 
-button.ghost, #disconnect-btn, #change-folder-btn, #show-copy, #show-reset, #source-buttons button {
+button.ghost, #disconnect-btn, #change-folder-btn, #folder-back, #show-copy, #show-reset, #source-buttons button {
   background: #ffffff;
   color: var(--violet);
   border: 2px solid var(--violet);
@@ -284,7 +284,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 #login[hidden], #home[hidden], #host[hidden], .panel[hidden], #oauth-error[hidden],
 #toast[hidden], #cam-error[hidden], #cam-toast[hidden], #qr[hidden],
 #no-sources[hidden], #folders[hidden], #disconnect-btn[hidden],
-#change-folder-btn[hidden], #show-qr[hidden], #show-top[hidden], #cloud-status[hidden], #source-buttons[hidden],
+#change-folder-btn[hidden], #show-qr[hidden], #show-top[hidden], #folder-back[hidden], #folder-use-current[hidden], #folder-top-hint[hidden], #cloud-status[hidden], #source-buttons[hidden],
 #folder-empty[hidden], #wall-empty[hidden], #login-code-form[hidden],
 #party-empty[hidden], #phone-logout[hidden] {
   display: none !important;
@@ -1026,3 +1026,46 @@ button.danger {
   line-height: 1.3;
   text-align: center;
 }
+
+/* ---------- Folder chooser ---------- */
+
+#folder-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  margin: 0.3rem 0 0.7rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--field);
+  border-radius: 0.7rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+#folder-crumb strong { color: var(--violet); }
+.crumb-sep { color: #b9a6e0; }
+
+.panel button.crumb {
+  width: auto;
+  background: transparent;
+  color: var(--violet);
+  box-shadow: none;
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#folder-actions { margin: 0 0 0.6rem; }
+#folder-actions:not(:has(button:not([hidden]))) { display: none; }
+#folder-use-current { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#folder-list li > button:first-child {
+  text-align: left;
+  border-radius: 1.1rem;
+  word-break: break-word;
+}
+#folder-list li > button:first-child { flex: 1 1 auto; }
+#folder-list li > button:last-child { flex: 0 0 auto; width: auto; }

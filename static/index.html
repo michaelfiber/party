@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=15" />
 </head>
 <body>
   <button id="phone-logout" type="button" hidden>Log out</button>
@@ -279,7 +279,12 @@
       <section id="folders" class="panel" hidden>
         <h2>2. Choose the folder</h2>
         <p class="hint">Every guest photo streams into this one folder.</p>
-        <p id="folder-crumb"></p>
+        <nav id="folder-crumb" aria-label="Current folder path"></nav>
+        <div id="folder-actions" class="row">
+          <button id="folder-back" type="button" hidden>&larr; Back</button>
+          <button id="folder-use-current" type="button" hidden>Use this folder</button>
+        </div>
+        <p id="folder-top-hint" class="hint" hidden>Open a folder to save into it, or create a new one below.</p>
         <ul id="folder-list"></ul>
         <p id="folder-empty" hidden>No folders here yet.</p>
         <form id="new-folder-form" class="row">
@@ -340,7 +345,7 @@
       <a href="mailto:admin@cubeofb.org">admin@cubeofb.org</a>
     </footer>
   </div>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
   <script src="banner.js?v=1"></script>
 </body>
 </html>
