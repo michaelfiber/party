@@ -2,8 +2,10 @@ package party
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -169,4 +171,33 @@ func shotsForParty(partyID string) []Shot {
 		}
 	}
 	return out
+}
+
+// deleteParty removes a party, its shot records, its photos on this server
+// and any cloud tokens stored with it. Copies already uploaded to the host's
+// own cloud folder are not touched.
+func deleteParty(id string) error {
+	id = strings.TrimSpace(id)
+	if id == "" || strings.ContainsAny(id, `/\.`) {
+		return fmt.Errorf("bad party id")
+	}
+	storeMu.Lock()
+	p := parties[id]
+	if p == nil {
+		storeMu.Unlock()
+		return nil
+	}
+	delete(parties, id)
+	if p.Code != "" && partiesByCode[p.Code] == p {
+		delete(partiesByCode, p.Code)
+	}
+	for sid, s := range shots {
+		if s != nil && s.PartyID == id {
+			delete(shots, sid)
+		}
+	}
+	storeMu.Unlock()
+	persistParties()
+	persistShots()
+	return os.RemoveAll(filepath.Join(photosDir, id))
 }

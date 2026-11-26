@@ -208,8 +208,36 @@
           .then(showHost)
           .catch((err) => toast(err.message || "Could not open that party"));
       });
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "danger";
+      del.textContent = "Delete";
+      del.setAttribute("aria-label", "Delete " + (item.name || "this party"));
+      del.addEventListener("click", () => {
+        const photos = n === 1 ? "its 1 photo" : "its " + n + " photos";
+        const ok = window.confirm(
+          "Delete \"" + (item.name || "this party") + "\"?\n\n" +
+          "This permanently deletes the party and " + photos + " from Party Cam's server, and its QR code and slideshow link stop working. " +
+          "Copies already saved to your Google Drive, Dropbox, or OneDrive folder stay there."
+        );
+        if (!ok) return;
+        del.disabled = true;
+        postJSON("api/parties/delete", { id: item.id })
+          .then((data) => {
+            showHome(data);
+            toast("Deleted " + (item.name || "the party") + ".");
+          })
+          .catch((err) => {
+            del.disabled = false;
+            toast(err.message || "Could not delete that party");
+          });
+      });
+      const actions = document.createElement("div");
+      actions.className = "party-actions";
+      actions.appendChild(open);
+      actions.appendChild(del);
       li.appendChild(meta);
-      li.appendChild(open);
+      li.appendChild(actions);
       partyList.appendChild(li);
     });
   }

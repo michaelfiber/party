@@ -47,6 +47,9 @@ func appHandler() http.Handler {
 	inner.HandleFunc("POST /api/phone/logout", handlePhoneLogout)
 	inner.HandleFunc("GET /api/parties", handleListParties)
 	inner.HandleFunc("POST /api/parties/open", handleOpenParty)
+	inner.HandleFunc("POST /api/parties/delete", handleDeleteParty)
+	inner.HandleFunc("GET /terms", serveStaticPage("terms.html"))
+	inner.HandleFunc("GET /privacy", serveStaticPage("privacy.html"))
 	inner.HandleFunc("POST /api/party", handleCreateParty)
 	inner.HandleFunc("GET /api/oauth/{source}/start", handleOAuthStart)
 	inner.HandleFunc("GET /api/oauth/{source}/callback", handleOAuthCallback)
@@ -344,4 +347,11 @@ func handleTextLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func serveStaticPage(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		http.ServeFile(w, r, filepath.Join(staticDir, name))
+	}
 }

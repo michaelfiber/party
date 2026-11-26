@@ -484,3 +484,29 @@ func handleOpenParty(w http.ResponseWriter, r *http.Request) {
 	setHostCookies(w, p.ID, p.Secret)
 	writeJSON(w, http.StatusOK, loginStatus(r, phone, p))
 }
+
+func handleDeleteParty(w http.ResponseWriter, r *http.Request) {
+	phone := recoverPhone(r)
+	if phone == "" {
+		http.Error(w, "verify your phone number first", http.StatusUnauthorized)
+		return
+	}
+	var body struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body); err != nil {
+		http.Error(w, "bad json", http.StatusBadRequest)
+		return
+	}
+	p := getParty(strings.TrimSpace(body.ID))
+	if p == nil || p.Phone != phone {
+		http.Error(w, "that party is not on this number", http.StatusNotFound)
+		return
+	}
+	if err := deleteParty(p.ID); err != nil {
+		logf("delete party %s: %v", p.ID, err)
+		http.Error(w, "could not delete every photo; try again", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, loginStatus(r, phone, nil))
+}
